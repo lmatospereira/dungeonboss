@@ -1,0 +1,14 @@
+# Opcional: liga o container "web" à rede de um proxy reverso que já existe no servidor
+# (por exemplo, o Caddy de outro projeto que atende a porta 443).
+# O dbvps só usa este arquivo quando o .env do servidor define PROXY_NETWORK.
+services:
+  web:
+    networks:
+      internal:
+      proxy:
+        aliases: [masmorra-web]
+
+networks:
+  proxy:
+    name: ${PROXY_NETWORK:?defina PROXY_NETWORK no .env}
+    external: true

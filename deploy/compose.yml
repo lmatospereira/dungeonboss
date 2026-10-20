@@ -40,7 +40,8 @@ services:
     restart: unless-stopped
     depends_on: [api]
     ports:
-      - "${PUBLIC_PORT:-8090}:80"
+      # Com proxy reverso, PUBLIC_BIND=127.0.0.1 deixa a porta acessível só de dentro do servidor.
+      - "${PUBLIC_BIND:-0.0.0.0}:${PUBLIC_PORT:-8090}:80"
     volumes:
       - ./www:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
