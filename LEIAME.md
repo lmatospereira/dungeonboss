@@ -74,6 +74,33 @@ sudo certbot --nginx -d SEU-DOMINIO
 
 Para publicar uma versão nova: `git pull && ./deploy/publicar.sh`.
 
+### Publicar a partir da sua máquina (Claude Code local + SSH)
+
+Preparação, feita uma vez só:
+
+1. **Chave SSH sem senha.** No seu computador, rode `ssh-keygen -t ed25519` (se ainda não tiver uma chave) e depois `ssh-copy-id usuario@IP-DA-VPS`.
+2. **Apelido para a VPS.** Crie um apelido em `~/.ssh/config`:
+   ```
+   Host vps
+     HostName IP-DA-VPS
+     User usuario
+   ```
+   Para testar, rode `ssh vps 'echo ok'`. O teste precisa responder sem pedir senha.
+3. **Preparar a VPS.** Entre com `ssh vps` e rode:
+   ```bash
+   sudo apt update && sudo apt install -y nginx rsync certbot python3-certbot-nginx
+   sudo mkdir -p /var/www/masmorra && sudo chown -R $USER /var/www/masmorra
+   ```
+   Depois instale `deploy/nginx-masmorra.conf` e o certbot, como na lista de comandos acima. O `chown` faz com que os próximos envios não precisem de `sudo`.
+
+Com isso pronto, cada publicação é um comando só, rodado no seu computador:
+
+```bash
+./deploy/enviar.sh
+```
+
+Ele monta o jogo e envia a pasta `www/` para `/var/www/masmorra` na VPS. No Windows, rode dentro do WSL, porque o script usa `rsync`.
+
 Se usar o Firebase, adicione o domínio em **Authentication → Configurações → Domínios autorizados**.
 
 ## Passo 2: colocar o projeto no GitHub
