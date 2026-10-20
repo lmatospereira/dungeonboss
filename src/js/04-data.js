@@ -1,14 +1,14 @@
 /* ================= dados: heróis, inimigos, masmorras, progresso ================= */
 const DEFS={
   // heróis
-  brom:{name:'Brom',role:'Guardião',el:'natureza',hp:1450,atk:92,spd:88,crit:.08,dr:.2,model:'brom',abilities:['escudo','provocar','terremoto'],height:2.2,radius:.55},
-  lyra:{name:'Lyra',role:'Piromante',el:'fogo',hp:820,atk:148,spd:108,crit:.12,model:'lyra',abilities:['faisca','bolafogo','meteoros'],height:2.5,radius:.5},
-  alva:{name:'Alva',role:'Clériga',el:'luz',hp:960,atk:96,spd:100,crit:.08,model:'alva',abilities:['luzsagrada','prece','bencao'],height:2.3,radius:.5},
-  vex:{name:'Vex',role:'Ladino',el:'sombra',hp:880,atk:132,spd:122,crit:.3,model:'vex',abilities:['corte','veneno','execucao'],height:2.2,radius:.5},
-  kai:{name:'Kai',role:'Arqueiro',el:'agua',hp:860,atk:128,spd:114,crit:.2,model:'kai',abilities:['tiro','perfurante','chuvaFlechas'],height:2.2,radius:.5},
-  mira:{name:'Mira',role:'Sacerdotisa',el:'agua',hp:940,atk:94,spd:106,crit:.08,model:'mira',abilities:['jatoAgua','ondaCura','bolha'],height:2.3,radius:.5},
-  rook:{name:'Rook',role:'Berserker',el:'fogo',hp:1180,atk:124,spd:96,crit:.15,dr:.08,model:'rook',abilities:['machadada','sede','redemoinho'],height:2.4,radius:.55},
-  nyx:{name:'Nyx',role:'Necromante',el:'sombra',hp:840,atk:136,spd:104,crit:.1,model:'nyx',abilities:['toqueSombrio','drenar','maldicao'],height:2.4,radius:.5},
+  brom:{name:'Brom',role:'Guardião',el:'natureza',hp:1450,atk:92,spd:88,crit:.08,dr:.2,model:'brom',ult:'fortaleza',abilities:['escudo','provocar','terremoto'],height:2.2,radius:.55},
+  lyra:{name:'Lyra',role:'Piromante',el:'fogo',hp:820,atk:148,spd:108,crit:.12,model:'lyra',ult:'explosaoSolar',abilities:['faisca','bolafogo','meteoros'],height:2.5,radius:.5},
+  alva:{name:'Alva',role:'Clériga',el:'luz',hp:960,atk:96,spd:100,crit:.08,model:'alva',ult:'ressurreicao',abilities:['luzsagrada','prece','bencao'],height:2.3,radius:.5},
+  vex:{name:'Vex',role:'Ladino',el:'sombra',hp:880,atk:132,spd:122,crit:.3,model:'vex',ult:'dancaSombras',abilities:['corte','veneno','execucao'],height:2.2,radius:.5},
+  kai:{name:'Kai',role:'Arqueiro',el:'agua',hp:860,atk:128,spd:114,crit:.2,model:'kai',ult:'tiroAtordoante',abilities:['tiro','perfurante','chuvaFlechas'],height:2.2,radius:.5},
+  mira:{name:'Mira',role:'Sacerdotisa',el:'agua',hp:940,atk:94,spd:106,crit:.08,model:'mira',ult:'mareAlta',abilities:['jatoAgua','ondaCura','bolha'],height:2.3,radius:.5},
+  rook:{name:'Rook',role:'Berserker',el:'fogo',hp:1180,atk:124,spd:96,crit:.15,dr:.08,model:'rook',ult:'furiaSangue',abilities:['machadada','sede','redemoinho'],height:2.4,radius:.55},
+  nyx:{name:'Nyx',role:'Necromante',el:'sombra',hp:840,atk:136,spd:104,crit:.1,model:'nyx',ult:'colheita',abilities:['toqueSombrio','drenar','maldicao'],height:2.4,radius:.5},
   // inimigos
   goblin:{name:'Goblin Lanceiro',el:'natureza',hp:420,atk:72,spd:96,model:'goblin',abilities:['lanca'],height:2.05,radius:.5,scale:.85},
   arqueiro:{name:'Goblin Arqueiro',el:'natureza',hp:340,atk:86,spd:114,model:'arqueiro',abilities:['flecha'],height:2.05,radius:.5,scale:.85},
@@ -43,19 +43,42 @@ const MAX_LVL=30;
 const lm=L=>1+.1*(L-1);
 const xpNeed=L=>40+40*L;
 const trainCost=L=>Math.round(40*L*Math.pow(1.1,L-1));
-function heroPower(k,L){const d=DEFS[k];return Math.round((d.hp*.1+d.atk*1.5)*lm(L));}
-function teamPower(list){return list.reduce((s,t)=>s+heroPower(t.k,t.lvl),0);}
+
+/* ---------- evolução (1 a 3) ---------- */
+/* Evolução 2: +15% de vida e ataque e libera o 4º poder.
+   Evolução 3: mais +15% e libera a arma lendária do herói. */
+const MAX_EVO=3;
+const EVO_MULT=[1,1,1.15,1.3];
+const EVO_REQ={2:{lvl:5,crystals:3,gold:300},3:{lvl:12,crystals:8,gold:1500}};
+const WEAPONS={
+  brom:{name:'Machado Rachapedra',desc:'Machado de pedra rúnica forjado pelos anões da montanha.',hp:.15,atk:.10,dr:.05,color:0x9fe4a8},
+  lyra:{name:'Cajado da Fênix',desc:'Uma pena de fênix arde para sempre na ponta do cajado.',atk:.22,crit:.05,color:0xff7a2a},
+  alva:{name:'Maça da Aurora',desc:'Brilha como o primeiro raio de sol e fortalece as preces.',hp:.12,atk:.15,color:0xffe27a},
+  vex:{name:'Adagas do Eclipse',desc:'Lâminas gêmeas que somem na sombra antes de cortar.',atk:.15,crit:.10,spd:6,color:0xb47bff},
+  kai:{name:'Arco das Marés',desc:'A corda vibra como onda e a flecha nunca erra o alvo.',atk:.20,crit:.08,color:0x45aaff},
+  mira:{name:'Tridente Coral',desc:'Tridente do fundo do mar que guarda a força das correntes.',hp:.15,atk:.12,color:0x9fe4ff},
+  rook:{name:'Machados Brasa Viva',desc:'Dois machados que esquentam a cada golpe.',hp:.10,atk:.20,color:0xff5a2a},
+  nyx:{name:'Foice das Almas',desc:'Cada ceifada guarda um pouco da vida do inimigo.',hp:.08,atk:.20,crit:.05,color:0x5ef0a0}
+};
+function heroStats(k,L=1,evo=1){
+  const d=DEFS[k],m=lm(L)*(EVO_MULT[evo]||1),w=evo>=3?WEAPONS[k]:null;
+  return{hp:Math.round(d.hp*m*(1+(w&&w.hp||0))),atk:d.atk*m*(1+(w&&w.atk||0)),spd:d.spd+(w&&w.spd||0),crit:(d.crit??.1)+(w&&w.crit||0),dr:(d.dr||0)+(w&&w.dr||0)};
+}
+function heroAbilities(k,evo=1){const d=DEFS[k];return evo>=2&&d.ult?[...d.abilities,d.ult]:d.abilities.slice();}
+function heroPower(k,L,evo=1){const s=heroStats(k,L,evo);return Math.round(s.hp*.1+s.atk*1.5*(1+s.crit*.6)+(evo>=2?40*lm(L):0));}
+function teamPower(list){return list.reduce((s,t)=>s+heroPower(t.k,t.lvl,t.evo||1),0);}
 function recPower(L){return Math.round(4*(1000*.1+120*1.5)*lm(L));}
 const roomXp=L=>30+12*L;
 const roomGold=L=>25+10*L;
 
 /* ---------- salvamento ---------- */
 const SAVE_KEY='masmorra-v2';
-function defaultSave(){return{v:2,name:'',gold:100,heroes:Object.fromEntries(HERO_KEYS.map(k=>[k,{lvl:1,xp:0}])),unlocked:[...STARTERS],stars:{},team:['brom','lyra','alva','vex'],defense:['brom','lyra','alva','vex'],rating:1000,wins:0,losses:0,log:[],updated:0};}
+function defaultSave(){return{v:3,name:'',gold:100,crystals:0,heroes:Object.fromEntries(HERO_KEYS.map(k=>[k,{lvl:1,xp:0,evo:1}])),unlocked:[...STARTERS],stars:{},team:['brom','lyra','alva','vex'],defense:['brom','lyra','alva','vex'],rating:1000,wins:0,losses:0,log:[],updated:0};}
 function normalizeSave(s){
   const d=defaultSave();if(!s||typeof s!=='object')return d;
   const out=Object.assign(d,s);
-  for(const k of HERO_KEYS){const h=(s.heroes||{})[k];out.heroes[k]={lvl:clamp(+(h&&h.lvl)||1,1,MAX_LVL),xp:Math.max(0,+(h&&h.xp)||0)};}
+  for(const k of HERO_KEYS){const h=(s.heroes||{})[k];out.heroes[k]={lvl:clamp(+(h&&h.lvl)||1,1,MAX_LVL),xp:Math.max(0,+(h&&h.xp)||0),evo:clamp(+(h&&h.evo)||1,1,MAX_EVO)};}
+  out.crystals=Math.max(0,Math.floor(+out.crystals||0));
   out.unlocked=[...new Set([...STARTERS,...(Array.isArray(s.unlocked)?s.unlocked:[])])].filter(k=>HERO_KEYS.includes(k));
   const okTeam=t=>Array.isArray(t)&&t.length===4&&t.every(k=>out.unlocked.includes(k))&&new Set(t).size===4;
   if(!okTeam(out.team))out.team=d.team;if(!okTeam(out.defense))out.defense=d.defense;
@@ -67,7 +90,22 @@ function loadLocal(){try{return normalizeSave(JSON.parse(localStorage.getItem(SA
 let SAVE=loadLocal();
 function persist(){SAVE.updated=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}if(typeof Net!=='undefined')Net.pushSave(SAVE);}
 const lvlOf=k=>SAVE.heroes[k].lvl;
-const teamList=keys=>keys.map(k=>({k,lvl:lvlOf(k)}));
+const evoOf=k=>SAVE.heroes[k].evo||1;
+const teamList=keys=>keys.map(k=>({k,lvl:lvlOf(k),evo:evoOf(k)}));
+/* o que falta para evoluir: lista de motivos (vazia = pode evoluir) */
+function evoMissing(k){
+  const h=SAVE.heroes[k],next=(h.evo||1)+1,r=EVO_REQ[next];if(!r)return null;
+  const miss=[];
+  if(h.lvl<r.lvl)miss.push(`nível ${r.lvl}`);
+  if(SAVE.crystals<r.crystals){const n=r.crystals-SAVE.crystals;miss.push(`${n} ${n>1?'cristais':'cristal'} a mais`);}
+  if(SAVE.gold<r.gold)miss.push(`${fmt(r.gold-SAVE.gold)} de ouro a mais`);
+  return miss;
+}
+function evolveHero(k){
+  const h=SAVE.heroes[k],next=(h.evo||1)+1,r=EVO_REQ[next];
+  if(!r||evoMissing(k).length)return false;
+  SAVE.crystals-=r.crystals;SAVE.gold-=r.gold;h.evo=next;persist();return true;
+}
 function grantXp(k,amt){
   const h=SAVE.heroes[k],from=h.lvl;h.xp+=amt;
   while(h.lvl<MAX_LVL&&h.xp>=xpNeed(h.lvl)){h.xp-=xpNeed(h.lvl);h.lvl++;}

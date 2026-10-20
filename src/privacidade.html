@@ -11,7 +11,7 @@ main{max-width:680px;margin:auto}h1{color:var(--gold);line-height:1.15}h2{margin
 <p>Esta política explica quais dados o jogo Masmorra do Rei Ogro coleta, por que coleta e como você pode pedir a exclusão.</p>
 <h2>Dados que coletamos</h2>
 <ul>
-<li><b>Identificador anônimo de jogador</b>, criado automaticamente pelo Firebase Authentication na primeira vez que o jogo abre. Ele não contém seu nome, e-mail ou telefone.</li>
+<li><b>Conta de jogador</b>: o nome de aventureiro e a senha que você escolhe. A senha é guardada apenas como um código cifrado (hash bcrypt), nunca em texto.</li>
 <li><b>Nome de aventureiro</b> que você digita no jogo. Ele aparece para outros jogadores na Invasão e no ranking.</li>
 <li><b>Progresso do jogo</b>: níveis dos heróis, ouro, estrelas, equipe de defesa, troféus e resultados de invasões.</li>
 </ul>
@@ -19,7 +19,7 @@ main{max-width:680px;margin:auto}h1{color:var(--gold);line-height:1.15}h2{margin
 <h2>Para que usamos</h2>
 <p>Usamos esses dados apenas para salvar seu progresso, montar a lista de oponentes da Invasão e mostrar o ranking. Não vendemos nem compartilhamos dados com terceiros para publicidade.</p>
 <h2>Onde ficam os dados</h2>
-<p>Os dados ficam no Google Firebase (Cloud Firestore e Authentication), que processa as informações em nome do desenvolvedor. A transmissão é criptografada (HTTPS).</p>
+<p>Os dados ficam no servidor do próprio jogo, num banco de dados PostgreSQL. Não usamos serviços de terceiros para guardar contas ou progresso.</p>
 <h2>Exclusão de dados</h2>
 <p>Para apagar seus dados, envie um e-mail para <b>[SEU E-MAIL DE CONTATO]</b> com o seu nome de aventureiro. Os dados são apagados em até 30 dias. Desinstalar o app apaga o progresso salvo no aparelho.</p>
 <h2>Crianças</h2>

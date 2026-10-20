@@ -384,3 +384,47 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-o
 .slot-btn{width:48px;height:48px;flex:none;cursor:pointer}
 .slot-btn .pt{width:48px;height:48px}
 .slot-btn:hover .pt,.slot-btn:focus-visible .pt{border-color:#ff8f9a}
+
+/* ---------- 4 poderes e poder supremo ---------- */
+#skills{max-width:620px}
+.ab.ult{border-color:#c9a046;background:linear-gradient(180deg,#3a2a14,#24170c)}
+.ab.ult .ai{box-shadow:0 0 0 2px #ffc93c,inset 0 -5px 0 #0004,0 0 14px #ffc93c88}
+.ab.ult .an::after{content:"";display:block;margin:2px auto 0;width:22px;height:3px;border-radius:2px;background:var(--gold)}
+@media (max-width:560px){
+  #skills{gap:6px}
+  .ab{padding:6px 3px 5px}
+  .ab .ai{width:40px;height:40px}
+  .ab .ai svg{width:20px;height:20px}
+  .ab .an{font-size:11px}
+}
+/* estrelas de evolução e arma */
+.evo{display:inline-flex;gap:1px;vertical-align:middle}
+.evo svg{width:13px;height:13px;fill:#3a2d48}
+.evo svg.on{fill:var(--gold)}
+.pt .evb{position:absolute;left:50%;top:-7px;transform:translateX(-50%);display:flex;gap:0;padding:0 2px;border-radius:6px;background:#120b18}
+.pt .evb svg{width:10px;height:10px;fill:var(--gold)}
+.evobox{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:12px;background:var(--well);border:2px solid #3a2a4a}
+.evobox h4{margin:0;font-family:var(--f-display);font-weight:400;font-size:18px;color:var(--gold);display:flex;align-items:center;gap:8px}
+.evosteps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.evostep{padding:6px 8px;border-radius:10px;border:1.5px solid #3a2a4a;font-size:11.5px;line-height:1.3;color:var(--muted)}
+.evostep b{display:block;font-size:12px;color:var(--ink)}
+.evostep.done{border-color:#c9a046;background:#c9a0461a}
+.evostep.next{border-color:#9fd8ff;background:#9fd8ff14}
+.req{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12.5px;font-weight:800}
+.req .ok{color:var(--heal)}.req .bad{color:#ff8f9a}
+.weapon{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;border:1.5px solid color-mix(in srgb,var(--wc) 60%,transparent);background:color-mix(in srgb,var(--wc) 12%,#120b18)}
+.weapon .wi{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--wc);box-shadow:0 0 12px var(--wc)}
+.weapon .wi svg{width:20px;height:20px;fill:#120b18}
+.weapon b{font-weight:800}
+.weapon span{font-size:12px;color:var(--muted)}
+.weapon.locked{filter:saturate(.25) opacity(.75)}
+.abchip.ult .ai{box-shadow:0 0 0 2px #ffc93c}
+.abchip.lockd{opacity:.55}
+.crys{fill:#9fe4ff}
+@media (max-width:560px){.evosteps{grid-template-columns:1fr}}
+.acct{flex:1;min-width:0;display:flex;align-items:center;gap:8px;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.authform{display:flex;flex-direction:column;gap:8px}
+.authform label{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.authform input{height:46px;padding:0 12px;border-radius:12px;border:2px solid var(--rim);background:var(--well);color:var(--ink);font:inherit;font-weight:700;font-size:16px}
+.authform .big-btn{margin-top:6px;align-self:stretch;min-width:0}
+.autherr{margin:0;min-height:20px;font-size:14px;font-weight:700;color:#ff9aa4}

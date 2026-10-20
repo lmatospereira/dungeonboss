@@ -23,15 +23,16 @@ const Preview={
     el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
     return true;
   },
-  mount(host,key,locked){
+  mount(host,key,locked,evo=1){
     this.host=host;
     if(!this.init()){host.insertAdjacentHTML('beforeend',`<img src="${portrait(key)}" alt="" style="position:absolute;inset:0;margin:auto;width:60%;height:auto">`);return;}
     host.appendChild(this.r.domElement);this.w=this.h=0;
-    if(this.key!==key||this.locked!==locked)this.set(key,locked);
+    if(this.key!==key||this.locked!==locked||this.evo!==evo)this.set(key,locked,evo);
   },
-  set(key,locked){
+  set(key,locked,evo=1){
     if(this.model)this.scene.remove(this.model.root);
-    const m=MODELS[DEFS[key].model]();
+    const m=MODELS[DEFS[key].model]();this.evo=evo;
+    if(!locked&&evo>=3)addWeaponGlow(m,WEAPONS[key].color);
     if(locked)m.root.traverse(o=>{if(o.isSprite)o.visible=false;else if(o.material&&o.material!==OUTLINE)o.material=silhouetteMat;});
     this.model=m;this.key=key;this.locked=locked;this.scene.add(m.root);this.pop=0;
     const c=locked?0x6a5a7a:ELEM[DEFS[key].el].c;this.ringMat.color.set(c);this.glow.material.color.set(c);

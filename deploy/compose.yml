@@ -1,0 +1,53 @@
+# Stack do Masmorra do Rei Ogro na VPS (projeto "masmorra").
+#   web  nginx: serve o jogo (www/) e repassa /api para a API
+#   api  Node: contas, salvamento, Invasão e ranking
+#   db   Postgres: dados dos jogadores (volume persistente)
+# Segredos ficam no .env do servidor (criado pelo dbvps), nunca no repositório.
+name: masmorra
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: masmorra
+      POSTGRES_DB: masmorra
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U masmorra -d masmorra"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [internal]
+
+  api:
+    build: ./server
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PGHOST: db
+      PGUSER: masmorra
+      PGDATABASE: masmorra
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
+    networks: [internal]
+
+  web:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on: [api]
+    ports:
+      - "${PUBLIC_PORT:-8090}:80"
+    volumes:
+      - ./www:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks: [internal]
+
+volumes:
+  pgdata:
+
+networks:
+  internal:

@@ -5,7 +5,7 @@ function buildParty(){
   partyEl.innerHTML='';
   G.heroes.forEach(h=>{
     const b=document.createElement('button');b.type='button';b.className='card';
-    b.innerHTML=`${ptHtml(h.key,h.lvl)}<span class="ci"><span class="cn">${h.def.name}</span><span class="cbar"><i class="chp"></i><i class="csh"></i></span><span class="ct"></span></span><span class="cst"></span>`;
+    b.innerHTML=`${ptHtml(h.key,h.lvl,'',h.evo)}<span class="ci"><span class="cn">${h.def.name}</span><span class="cbar"><i class="chp"></i><i class="csh"></i></span><span class="ct"></span></span><span class="cst"></span>`;
     b.setAttribute('aria-label',`${h.def.name}, ${h.def.role}, nível ${h.lvl}`);
     b.addEventListener('click',()=>onUnitTap(h));partyEl.appendChild(b);h.card=b;
   });
@@ -17,7 +17,7 @@ function refreshCards(){
     c.querySelector('.ct').textContent=`${fmt(h.hp)} / ${fmt(h.maxHp)}`;
     c.querySelector('.cst').innerHTML=statusHtml(h);
     c.classList.toggle('dead',!h.alive);c.classList.toggle('active',G.state==='battle'&&G.current===h);
-    c.classList.toggle('target',G.valid.includes(h)&&['ally','allies','self'].includes(AB[G.sel]?.target));
+    c.classList.toggle('target',G.valid.includes(h)&&['ally','allies','self','fallen'].includes(AB[G.sel]?.target));
   }
 }
 function buildOrder(){
@@ -48,31 +48,33 @@ function markAdvantage(u){
 }
 function renderSkills(u){
   skillsEl.innerHTML='';
-  u.def.abilities.forEach(id=>{
+  u.abilities.forEach(id=>{
     const a=AB[id],cd=u.cds[id];const b=document.createElement('button');b.type='button';
-    b.className='ab'+(cd>0?' cool':'')+(G.sel===id?' sel':'');b.style.setProperty('--elc',ELEM[u.el].c);
+    const none=a.target==='fallen'&&!fallenOf(u).length;
+    b.className='ab'+(cd>0||none?' cool':'')+(a.ult?' ult':'')+(G.sel===id?' sel':'');b.style.setProperty('--elc',ELEM[u.el].c);
     b.innerHTML=`<span class="ai"><svg><use href="#${a.icon}"/></svg>${cd>0?`<b class="cd">${cd}</b>`:''}</span><span class="an">${a.name}</span>`;
     b.setAttribute('aria-label',`${a.name}${cd>0?`, recarrega em ${cd}`:''}. ${a.desc}`);
     b.addEventListener('click',()=>onAbilityTap(id));skillsEl.appendChild(b);
   });
 }
-const targetHelp={enemy:'Toque num inimigo.',ally:'Toque num aliado.',self:'Toque de novo para usar.',enemies:'Toque de novo para usar.',allies:'Toque de novo para usar.'};
+const targetHelp={enemy:'Toque num inimigo.',ally:'Toque num aliado.',fallen:'Toque num aliado caído.',self:'Toque de novo para usar.',enemies:'Toque de novo para usar.',allies:'Toque de novo para usar.'};
 function selectAbility(u,id){
   const a=AB[id];G.sel=id;
-  G.valid=a.target==='enemy'||a.target==='enemies'?aliveEnemies():a.target==='self'?[u]:aliveHeroes();
+  G.valid=a.target==='enemy'||a.target==='enemies'?aliveEnemies():a.target==='self'?[u]:a.target==='fallen'?fallenOf(u):aliveHeroes();
   renderSkills(u);refreshCards();
   setHint(`<b>${a.name}</b> · ${a.desc} ${targetHelp[a.target]}`);
 }
 function onAbilityTap(id){
   const u=G.current;if(!G.pending||!u)return;sfx.click();
   if(u.cds[id]>0){setHint(`<b>${AB[id].name}</b> recarrega em ${u.cds[id]} turno${u.cds[id]>1?'s':''}.`);return;}
+  if(AB[id].target==='fallen'&&!fallenOf(u).length){setHint(`<b>${AB[id].name}</b>: nenhum aliado caído para trazer de volta.`);return;}
   const a=AB[id];
   if(G.sel===id&&['self','enemies','allies'].includes(a.target)){G.pending({ab:id,target:a.target==='self'?u:null});return;}
   selectAbility(u,id);
 }
 function onUnitTap(t){
   if(!G.pending||!G.valid.includes(t))return;
-  const a=AB[G.sel];G.pending({ab:G.sel,target:a.target==='enemy'||a.target==='ally'?t:a.target==='self'?G.current:null});
+  const a=AB[G.sel];G.pending({ab:G.sel,target:a.target==='enemy'||a.target==='ally'||a.target==='fallen'?t:a.target==='self'?G.current:null});
 }
 const ray=new THREE.Raycaster();
 canvas.addEventListener('pointerdown',e=>{
@@ -94,7 +96,7 @@ function fade(to,ms){const el=$('#fade'),from=parseFloat(el.style.opacity||0);re
 
 /* ================= montagem de cenas ================= */
 function clearUnits(){for(const u of allUnits())u.destroy();G.heroes=[];G.enemies=[];for(const f of floaters)f.el.remove();floaters.length=0;}
-function makeHeroes(keys){G.heroes=keys.map((k,i)=>{const u=new Unit(k,'hero',lvlOf(k));u.slot={type:'hero',i};return u;});}
+function makeHeroes(keys){G.heroes=keys.map((k,i)=>{const u=new Unit(k,'hero',lvlOf(k),evoOf(k));u.slot={type:'hero',i};return u;});}
 function showcase(keys,themeKey='goblin'){
   G.state='menu';G.loopId++;G.pending=null;G.current=null;G.valid=[];
   topEl.hidden=true;bottomEl.hidden=true;bannerEl.hidden=true;
@@ -107,7 +109,7 @@ async function dropIn(e){
 }
 function spawnRoom(room){
   for(const e of G.enemies)e.destroy();G.enemies=[];
-  room.enemies.forEach((x,j)=>{const e=new Unit(x.k,'enemy',x.lvl);e.slot=room.boss?{type:'boss'}:{type:'enemy',i:j};G.enemies.push(e);});
+  room.enemies.forEach((x,j)=>{const e=new Unit(x.k,'enemy',x.lvl,x.evo||1);e.slot=room.boss?{type:'boss'}:{type:'enemy',i:j};G.enemies.push(e);});
   for(const e of G.enemies){placeUnit(e);e.root.visible=false;}
 }
 function initTimers(){G.clock=0;for(const u of allUnits())if(u.alive)u.timer=(1000/u.spd)*(u.side==='hero'?rand(.1,.75):rand(.3,1));}
@@ -118,7 +120,13 @@ function startDungeon(d){
     {enemies:[{k:d.boss,lvl:d.lvl+1}],boss:true,theme:d.theme,name:d.name,sub:d.sub[2]}];
   beginBattle(SAVE.team);
 }
-function startArena(opp){
+async function startArena(opp){
+  G.raidId=null;
+  if(Net.online&&Net.token&&!opp.bot){
+    const r=await Net.startRaid(opp.uid);
+    if(!r){toast('Esse oponente não está mais disponível. Escolha outro.');showArena('opps');return;}
+    G.raidId=r;
+  }
   G.mode='arena';G.opp=opp;G.dungeon=null;
   G.rooms=[{enemies:opp.team.map(t=>({k:t.k,lvl:t.lvl})),theme:'arena',name:`Masmorra de ${opp.name}`,sub:'Derrote a equipe de defesa.'}];
   beginBattle(SAVE.team);
@@ -182,7 +190,7 @@ function askPlayer(u){
   return new Promise(res=>{
     G.pending=c=>{G.pending=null;G.valid=[];G.sel=null;res(c);};
     skillsEl.classList.remove('wait');
-    selectAbility(u,u.def.abilities[0]);
+    selectAbility(u,u.abilities[0]);
     setHint(`Vez de <b>${u.def.name}</b> · toque num inimigo para atacar ou escolha uma habilidade.${G.enemies.some(e=>e.alive&&elemMult(u.el,e.el)!==1)?' <span class="up">▲ dano extra</span> · <span class="down">▼ resistido</span>':''}`);
   });
 }
@@ -251,8 +259,8 @@ async function checkEnd(){
 }
 
 /* ---------- recompensas ---------- */
-function computeRewards(win,quit){
-  const res={win,quit,mode:G.mode,xp:[],gold:0,stars:0,unlocked:null,delta:0};
+function computeRewards(win,quit,server=null){
+  const res={win,quit,mode:G.mode,xp:[],gold:0,stars:0,unlocked:null,delta:0,crystals:0};
   const team=G.heroes.map(h=>h.key);
   let xp=0;
   if(G.mode==='dungeon'){
@@ -262,25 +270,29 @@ function computeRewards(win,quit){
       res.stars=Math.max(1,aliveHeroes().length===4?3:aliveHeroes().length>=2?2:1);
       const prev=SAVE.stars[d.id]||0;if(res.stars>prev)SAVE.stars[d.id]=res.stars;
       if(!prev){res.gold+=100*d.lvl;res.firstClear=true;}
+      res.crystals=prev?1:3;
       if(d.unlockHero&&!SAVE.unlocked.includes(d.unlockHero)){SAVE.unlocked.push(d.unlockHero);res.unlocked=d.unlockHero;}
     }
   }else{
     const avg=team.reduce((s,k)=>s+lvlOf(k),0)/4;
-    const exp=1/(1+Math.pow(10,(G.opp.rating-SAVE.rating)/400));
-    res.delta=clamp(Math.round(32*((win?1:0)-exp)),-32,32);
-    SAVE.rating=Math.max(0,SAVE.rating+res.delta);
-    if(win)SAVE.wins++;else SAVE.losses++;
-    res.gold=win?Math.round(60+6*avg):15;xp=win?50:15;
+    if(server){res.delta=server.delta;Net.applyProfile(server.profile);}
+    else{
+      const exp=1/(1+Math.pow(10,(G.opp.rating-SAVE.rating)/400));
+      res.delta=clamp(Math.round(32*((win?1:0)-exp)),-32,32);
+      SAVE.rating=Math.max(0,SAVE.rating+res.delta);
+      if(win)SAVE.wins++;else SAVE.losses++;
+    }
+    res.gold=win?Math.round(60+6*avg):15;xp=win?50:15;res.crystals=win?1:0;
   }
-  SAVE.gold+=res.gold;
+  SAVE.gold+=res.gold;SAVE.crystals+=res.crystals;
   for(const k of team){const before={lvl:lvlOf(k),xp:SAVE.heroes[k].xp};const r=grantXp(k,xp);res.xp.push({k,before,gained:xp,to:r.to});}
   persist();
   return res;
 }
 async function finishBattle(win,quit=false){
   G.state='end';G.loopId++;G.current=null;G.valid=[];if(G.pending){G.pending=null;}skillsEl.classList.add('wait');refreshUI();
-  const res=computeRewards(win,quit);
-  if(G.mode==='arena')Net.reportArena(G.opp,win,res.delta);
+  const server=G.mode==='arena'&&G.raidId?await Net.finishRaid(G.raidId,win):null;G.raidId=null;
+  const res=computeRewards(win,quit,server);
   if(!quit){
     if(win){sfx.win();banner('Vitória!',G.mode==='arena'?'Invasão concluída':`${DEFS[G.dungeon.boss].short} caiu`,'',false,1800);
       for(let r=0;r<2;r++)await Promise.all(aliveHeroes().map(h=>tween(420,(k,raw)=>{h.root.position.y=Math.sin(raw*Math.PI)*.9;h.root.rotation.y=h.homeYaw+raw*Math.PI*2;},E.lin)));}
@@ -315,6 +327,6 @@ function syncTools(){
 document.addEventListener('keydown',e=>{
   if(!G.pending||!G.current)return;
   const n=parseInt(e.key,10);
-  if(n>=1&&n<=3){const id=G.current.def.abilities[n-1];if(id)onAbilityTap(id);}
+  if(n>=1&&n<=4){const id=G.current.abilities[n-1];if(id)onAbilityTap(id);}
   if(e.key==='Enter'||e.key===' '){const a=AB[G.sel];if(a&&G.valid.length){e.preventDefault();onUnitTap(a.target==='enemy'?bestFoe(G.current):a.target==='ally'?aliveHeroes().sort((x,y)=>ratio(x)-ratio(y))[0]:G.valid[0]);}}
 });

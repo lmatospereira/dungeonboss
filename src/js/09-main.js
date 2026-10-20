@@ -1,5 +1,7 @@
 /* ================= início ================= */
 if(/turbo/.test(location.search)){G.speed=8;G.auto=true;}
+/* ?debug expõe o estado para testes automáticos */
+if(/debug/.test(location.search))window.__dbg={G,AB,SAVE:()=>SAVE,kill,revive,fallenOf};
 /* ?shot=chave renderiza um retrato grande e transparente do modelo (usado para gerar o ícone do app) */
 const shotKey=(location.search.match(/shot=(\w+)/)||[])[1];
 if(shotKey==='lineup'){
@@ -28,11 +30,7 @@ requestAnimationFrame(t=>{last=t;frame(t);});
 showHub();
 document.addEventListener('pointerdown',()=>audio(),{once:true});
 (async()=>{
-  if(!await Net.init()){if(G.state==='menu'&&screenEl.querySelector('.hub'))showHub();return;}
-  const remote=await Net.pullSave();
-  if(remote&&(remote.updated||0)>(SAVE.updated||0)){SAVE=remote;try{localStorage.setItem(SAVE_KEY,JSON.stringify(SAVE));}catch(e){}}
-  else if(SAVE.updated)Net.pushSave(SAVE);
+  await Net.init();
   hubLog=await Net.collectDefenses();
-  Net.publishProfile();
   if(G.state==='menu'&&screenEl.querySelector('.hub'))showHub();
 })();

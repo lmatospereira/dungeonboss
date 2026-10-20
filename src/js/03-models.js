@@ -30,6 +30,12 @@ function cape(r,color,{len=.82,w=.5,y=1.08,arc=.85}={}){
   r.cape=g;return g;
 }
 function pauldron(r,mat,sx,s=1){P(r.body,GEO.half,mat,[.48*sx,1,0],[.22*s,.18*s,.22*s]);P(r.body,GEO.torus,r.T(0xe2ad35),[.48*sx,1,0],[.22*s,.22*s,.22*s],[Math.PI/2,0,0],0);}
+/* arma lendária (evolução 3): brilho na arma e faíscas */
+function addWeaponGlow(r,color){
+  r.weaponGlow=[];
+  for(const h of[r.handR,r.handL]){const g=glowSprite(color,1.5,.75);g.position.set(0,.25,.35);h.add(g);r.weaponGlow.push(g);}
+  const halo=glowSprite(color,3.2,.18);halo.position.y=1.1;r.root.add(halo);r.weaponGlow.push(halo);
+}
 function staff(r,hand,wood,orbColor,glowColor,top){
   const st=new THREE.Group();hand.add(st);
   P(st,GEO.cyl,wood,[0,.35,0],[.045,1.5,.045]);

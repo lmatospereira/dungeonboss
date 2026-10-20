@@ -13,3 +13,5 @@ __pycache__/
 *.py[codz]
 .env
 .venv/
+www/
+server/node_modules/

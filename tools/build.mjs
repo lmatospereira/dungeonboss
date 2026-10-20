@@ -1,6 +1,7 @@
 // Monta o jogo a partir de src/ em duas saídas:
-//  - www/index.html  → app Android (Capacitor) e site no Firebase Hosting, com bibliotecas locais
-//  - dist/artifact.html → versão de demonstração de arquivo único (bibliotecas via CDN, sem Firebase)
+//  - www/index.html  → site na VPS e app Android (Capacitor), com bibliotecas locais
+//  - dist/artifact.html → demonstração de arquivo único (bibliotecas via CDN, roda offline)
+// API_URL define onde fica a API (padrão: /api no mesmo endereço do site).
 import {readFileSync,writeFileSync,mkdirSync,copyFileSync,readdirSync,existsSync} from 'node:fs';
 import {join,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -36,7 +37,6 @@ writeFileSync(join(root,'dist/artifact.html'),artifact);
 const www=join(root,'www');
 for(const d of['lib','fonts'])mkdirSync(join(www,d),{recursive:true});
 copyFileSync(nm('three/build/three.min.js'),join(www,'lib/three.min.js'));
-for(const f of['firebase-app-compat.js','firebase-auth-compat.js','firebase-firestore-compat.js'])copyFileSync(nm('firebase/'+f),join(www,'lib',f));
 const fonts=[['lilita-one','Lilita One',[400]],['baloo-2','Baloo 2',[500,600,700,800]]];
 let fontCss='';
 for(const [pkg,fam,ws] of fonts)for(const w of ws)for(const sub of['latin','latin-ext']){
@@ -46,7 +46,7 @@ for(const [pkg,fam,ws] of fonts)for(const w of ws)for(const sub of['latin','lati
   fontCss+=`@font-face{font-family:'${fam}';font-style:normal;font-weight:${w};font-display:swap;src:url(${f}) format('woff2');unicode-range:${range}}\n`;
 }
 writeFileSync(join(www,'fonts/fonts.css'),fontCss);
-copyFileSync(join(root,existsSync(join(root,'config/firebase-config.js'))?'config/firebase-config.js':'config/firebase-config.example.js'),join(www,'firebase-config.js'));
+writeFileSync(join(www,'config.js'),`window.MASMORRA_API=${JSON.stringify(process.env.API_URL||'/api')};\n`);
 const reset=':root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;height:100%}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}';
 const index=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
@@ -61,10 +61,7 @@ ${css}
 </style>
 ${body}
 <script src="lib/three.min.js"></script>
-<script src="lib/firebase-app-compat.js"></script>
-<script src="lib/firebase-auth-compat.js"></script>
-<script src="lib/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js"></script>
+<script src="config.js"></script>
 <script>
 ${js}
 </script>

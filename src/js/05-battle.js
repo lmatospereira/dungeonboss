@@ -13,11 +13,15 @@ const shieldOf=u=>{const s=u.status.find(x=>x.type==='shield');return s?s.value:
 function statusHtml(u){return u.status.map(s=>`<span class="si s-${s.type}" title="${ST[s.type].n}"><svg><use href="#${ST[s.type].i}"/></svg>${s.turns<50&&s.type!=='charge'?`<b>${s.turns}</b>`:''}</span>`).join('');}
 
 class Unit{
-  constructor(key,side,lvl=1){
+  constructor(key,side,lvl=1,evo=1){
     const d=DEFS[key];this.key=key;this.def=d;this.side=side;this.el=d.el;this.lvl=lvl;
-    this.maxHp=Math.round(d.hp*lm(lvl));this.hp=this.maxHp;this.baseAtk=d.atk*lm(lvl);this.spd=d.spd;this.crit=d.crit??.1;
+    const isHero=HERO_KEYS.includes(key);this.evo=isHero?clamp(evo,1,MAX_EVO):1;
+    const st=isHero?heroStats(key,lvl,this.evo):{hp:Math.round(d.hp*lm(lvl)),atk:d.atk*lm(lvl),spd:d.spd,crit:d.crit??.1,dr:d.dr||0};
+    this.maxHp=st.hp;this.hp=this.maxHp;this.baseAtk=st.atk;this.spd=st.spd;this.crit=st.crit;this.dr=st.dr;
+    this.abilities=isHero?heroAbilities(key,this.evo):d.abilities.slice();
     this.status=[];this.resetCds();
     Object.assign(this,MODELS[d.model]());
+    if(this.evo>=3)addWeaponGlow(this,WEAPONS[key].color);
     this.scale=d.scale||1;this.root.scale.setScalar(this.scale);
     this.h=(d.height+.1)*this.scale;this.radius=d.radius*this.scale;
     const blob=new THREE.Mesh(blobGeo,blobMat);blob.rotation.x=-Math.PI/2;blob.position.y=.025;blob.scale.setScalar(d.radius*2.6);this.root.add(blob);
@@ -29,7 +33,7 @@ class Unit{
     scene.add(this.root);this.makeTag();
   }
   get atk(){return this.baseAtk*(hasStatus(this,'enrage')?1.3:1);}
-  resetCds(){this.cds={};for(const id of this.def.abilities){const a=AB[id];this.cds[id]=a.cd?(a.start??Math.ceil(a.cd/2)):0;}}
+  resetCds(){this.cds={};for(const id of this.abilities){const a=AB[id];this.cds[id]=a.cd?(a.start??Math.ceil(a.cd/2)):0;}}
   makeTag(){
     const t=document.createElement('div');t.className='tag '+this.side+(this.def.boss?' boss':'');
     t.innerHTML=`<span class="tadv"></span><div class="tst"></div><div class="trow">${this.side==='enemy'?gemSvg(this.el):''}<span class="tl">${this.lvl}</span><div class="tbar"><i class="tsh"></i><i class="thp"></i></div></div>`;
@@ -97,7 +101,7 @@ function hit(u,t,mult,o={}){
   let dmg=u.atk*mult*rand(.92,1.08);
   const em=elemMult(u.el,t.el);dmg*=em;
   const crit=Math.random()<(o.crit??u.crit);if(crit)dmg*=1.6;
-  dmg*=1-(t.def.dr||0);if(o.bonus)dmg*=o.bonus;
+  dmg*=1-(t.dr||0);if(o.bonus)dmg*=o.bonus;
   dmg=Math.max(1,Math.round(dmg));
   const sh=t.status.find(s=>s.type==='shield');let absorbed=0;
   if(sh&&!o.pierce){absorbed=Math.min(sh.value,dmg);sh.value-=absorbed;dmg-=absorbed;if(sh.value<=0)removeStatus(t,'shield');}
@@ -116,6 +120,17 @@ function hit(u,t,mult,o={}){
 }
 function healUnit(t,amt){if(!t.alive)return;const before=t.hp;t.hp=Math.min(t.maxHp,t.hp+Math.round(amt));floatText(t,'+'+(t.hp-before),'heal');t.refresh();refreshUI();}
 function healFx(u){const p=u.root.position;shockwave(p,'#6fe38c',u.radius*2.6,600);for(let i=0;i<20;i++){const a=rand(0,Math.PI*2),r=rand(.2,u.radius*1.3);spawnPart(V(p.x+Math.cos(a)*r,rand(.1,u.h*.6),p.z+Math.sin(a)*r),{color:Math.random()<.5?'#9dffb4':'#ffe9a0',size:rand(.15,.32),life:rand(.6,1),v:V(0,rand(1.2,2.6),0)});}}
+const fallenOf=u=>(u.side==='hero'?G.heroes:G.enemies).filter(x=>!x.alive&&HERO_KEYS.includes(x.key));
+async function revive(t,pct){
+  if(!t||t.alive)return;
+  await waitDeaths();
+  t.alive=true;t.status=[];t.hp=Math.max(1,Math.round(t.maxHp*pct));
+  t.root.visible=true;t.root.position.copy(t.home);t.root.rotation.y=t.homeYaw;t.body.rotation.set(0,0,0);t.body.position.set(0,0,0);
+  t.timer=G.clock+1000/t.spd*.5;
+  await tween(420,k=>{t.root.scale.setScalar(t.scale*E.out(k));});
+  healFx(t);burst(t.center(),'#ffe27a',30,3.5,.4,.8,0,.8);floatText(t,'De volta!','lab');
+  t.refresh();refreshUI();buildOrder();
+}
 function kill(t){
   t.alive=false;t.status=[];t.refresh();sfx.death();
   const p=tween(650,k=>{t.body.rotation.x=-1.35*k;t.body.position.y=-.1*k;},E.out)
@@ -238,6 +253,37 @@ const AB={
     run:async u=>{await raise(u,-2.8,280);sfx.dark();
       await Promise.all(foesOf(u).map((e,i)=>wait(i*80).then(()=>projectile(orbPos(u),e.center(),{color:'#5ef0a0',size:.3,arc:1.2,ms:420})).then(()=>{hit(u,e,.45);if(e.alive)addStatus(e,'poison',3,Math.round(u.atk*.3));})));
       await lower(u);}},
+  /* ---- 4º poderes (liberados na evolução 2) ---- */
+  fortaleza:{name:'Fortaleza',icon:'i-shield',cd:5,start:1,target:'allies',kind:'shield',ult:true,desc:'Dá a todos os aliados um escudo de 15% da vida máxima do Brom por 2 turnos e provoca os inimigos.',
+    run:async u=>{sfx.roar();await tween(320,k=>{u.armL.rotation.x=-2.4*k;u.root.position.y=Math.sin(k*Math.PI)*.6;});sfx.slam();shake(.3);
+      shockwave(u.root.position,'#9fe4a8',9,700);for(const a of friendsOf(u)){shockwave(a.root.position,'#7cc7ff',a.radius*2.4,500);addStatus(a,'shield',2,Math.round(u.maxHp*.15));}
+      addStatus(u,'taunt',2);floatText(u,'Fortaleza!','lab');await wait(380);await tween(200,k=>{u.armL.rotation.x=-2.4*(1-k);});}},
+  explosaoSolar:{name:'Explosão Solar',icon:'i-sun',cd:5,start:1,target:'enemy',ult:true,desc:'320% de dano em um inimigo e queimadura forte por 3 turnos.',
+    run:async(u,t)=>{await raise(u,-2.9,320);sfx.fire();const from=orbPos(u).add(V(0,1.2,0));
+      await projectile(from,t.center(),{color:'#ffb347',size:.95,arc:2,ms:620,trail:4});shake(.45);shockwave(t.root.position,'#ff7a2a',5,600);
+      hit(u,t,3.2,{heavy:true});if(t.alive){addStatus(t,'burn',3,Math.round(u.atk*.5));floatText(t,'Queimando','lab');}await lower(u);}},
+  ressurreicao:{name:'Ressurreição',icon:'i-heart',cd:6,start:2,target:'fallen',ult:true,desc:'Traz de volta um aliado caído com 45% da vida.',
+    run:async(u,t)=>{await raise(u,-2.9,320);sfx.heal();await revive(t,.45);await wait(250);await lower(u);}},
+  dancaSombras:{name:'Dança das Sombras',icon:'i-dagger',cd:4,start:1,target:'enemies',ult:true,desc:'Quatro golpes de 55% em inimigos aleatórios, com +15% de chance de crítico.',
+    run:async u=>{const from=u.root.position.clone();sfx.whoosh();
+      for(let i=0;i<4;i++){const foes=foesOf(u);if(!foes.length)break;const t=pick(foes);
+        const to=t.root.position.clone().add(V(rand(-.6,.6),0,rand(-.6,.6)));
+        burst(u.center(),'#b47bff',10,2,.3,.3);await tween(120,k=>{u.root.position.lerpVectors(i?u.root.position:from,to,k);},E.lin);
+        u.root.position.copy(to);await faceTo(u,t.root.position,40);await tween(90,k=>{u.armR.rotation.x=-2.6*Math.sin(k*Math.PI);});hit(u,t,.55,{crit:u.crit+.15});}
+      await tween(220,k=>{u.root.position.lerp(u.home,k);});u.root.position.copy(u.home);}},
+  tiroAtordoante:{name:'Tiro Atordoante',icon:'i-bolt',cd:5,start:1,target:'enemy',ult:true,desc:'160% de dano e atordoa o alvo por 1 turno.',
+    run:async(u,t)=>{await raise(u,-1.6,300,'L');sfx.whoosh();await arrow(handPos(u,'L'),t.center(),{arc:.15,ms:200,color:0xffe066});
+      burst(t.center(),'#ffe066',22,4,.4,.5);hit(u,t,1.6,{heavy:true});if(t.alive)stun(t);await lower(u,'L');}},
+  mareAlta:{name:'Maré Alta',icon:'i-wave',cd:5,start:1,target:'enemies',ult:true,desc:'80% de dano em todos os inimigos e cura todos os aliados em 70% do ataque.',
+    run:async u=>{await raise(u,-2.9,300);sfx.water();shake(.3);
+      for(const e of foesOf(u)){shockwave(e.root.position,'#45aaff',3,600);hit(u,e,.8);}
+      await wait(250);sfx.heal();for(const a of friendsOf(u)){healFx(a);healUnit(a,u.atk*.7);}await wait(300);await lower(u);}},
+  furiaSangue:{name:'Fúria Sanguinária',icon:'i-rage',cd:5,start:1,target:'enemy',ult:true,desc:'260% de dano em um inimigo e recupera 50% do dano causado.',
+    run:(u,t)=>melee(u,t,()=>{burst(t.center(),'#ff4f5e',26,4.5,.45,.5);const d=hit(u,t,2.6,{heavy:true});if(d>0)healUnit(u,d*.5);})},
+  colheita:{name:'Colheita de Almas',icon:'i-skull',cd:5,start:1,target:'enemies',ult:true,desc:'110% de dano em todos os inimigos; Nyx recupera 35% do dano total.',
+    run:async u=>{await raise(u,-2.9,300);sfx.dark();let total=0;
+      await Promise.all(foesOf(u).map((e,i)=>wait(i*80).then(()=>{shockwave(e.root.position,'#5ef0a0',2.6,500);total+=hit(u,e,1.1);})));
+      if(total>0){await projectile(V(0,2,0),u.center(),{color:'#9effc8',size:.45,arc:.4,ms:360});healUnit(u,total*.35);}await lower(u);}},
   /* inimigos comuns */
   lanca:{name:'Estocada',cd:0,run:(u,t)=>melee(u,t,()=>hit(u,t,1))},
   flecha:{name:'Flecha',cd:0,run:async(u,t)=>{await raise(u,-1.5,160,'L');sfx.whoosh();await arrow(handPos(u,'L'),t.center());hit(u,t,1);await lower(u,'L');}},
@@ -291,7 +337,7 @@ function bestFoe(u,mode){
 }
 /* IA dos heróis (usada no AUTO e pelas equipes de defesa na Invasão) */
 function heroAI(u){
-  const [basic,...specials]=u.def.abilities,foes=foesOf(u),friends=friendsOf(u);
+  const [basic,...specials]=u.abilities,foes=foesOf(u),friends=friendsOf(u);
   const low=friends.slice().sort((a,b)=>ratio(a)-ratio(b))[0];
   const hurt=friends.filter(f=>ratio(f)<.7).length;
   const dots=friends.some(f=>f.status.some(s=>['poison','burn','stun'].includes(s.type)));
@@ -299,6 +345,7 @@ function heroAI(u){
     if(u.cds[id]>0)continue;const a=AB[id];
     if(a.target==='self'){if(!a.ai||a.ai(u))return{ab:id,target:u};continue;}
     if(a.target==='ally'){if(ratio(low)<.6)return{ab:id,target:low};continue;}
+    if(a.target==='fallen'){const f=fallenOf(u);if(f.length)return{ab:id,target:f[0]};continue;}
     if(a.target==='allies'){
       if(a.kind==='heal'&&(hurt>=2||ratio(low)<.45||(dots&&hurt>=1)))return{ab:id};
       if(a.kind==='shield'&&!friends.some(f=>shieldOf(f)>0)&&(ratio(low)<.85||foes.some(f=>f.def.boss)))return{ab:id};
@@ -312,7 +359,7 @@ function heroAI(u){
 }
 function enemyAI(u){
   if(HERO_KEYS.includes(u.key))return heroAI(u);
-  const ab=u.def.abilities,r=id=>u.cds[id]===0;
+  const ab=u.abilities,r=id=>u.cds[id]===0;
   if(u.def.boss){
     u.bt=(u.bt||0)+1;
     if(hasStatus(u,'charge'))return{ab:'bBig'};
@@ -383,6 +430,8 @@ function updateUnits(dt,t,rt){
       u.armL.rotation.z=-.15-b*.05;if(u.armR.rotation.x===0)u.armR.rotation.z=.15+b*.05;
       if(u.familiar){u.familiar.position.y=1.6+Math.sin(t*2+u.phase)*.12;u.familiar.rotation.y=t;}
       if(u.cape)u.cape.rotation.x=.14+Math.sin(t*2.6+u.phase)*.05+Math.min(.5,Math.abs(u.root.position.y)*.4);
+      if(u.weaponGlow){const p=.65+.25*Math.sin(rt*4+u.phase);u.weaponGlow[0].material.opacity=p;u.weaponGlow[1].material.opacity=p;
+        if(Math.random()<dt*5)spawnPart(handPos(u).add(rv(.25)),{color:'#'+u.weaponGlow[0].material.color.getHexString(),size:.14,life:.6,v:V(0,1,0)});}
       if(G.state==='battle'&&G.current===u){op=.9;col=u.side==='hero'?0xffc93c:0xff4f5e;sc=1+Math.sin(rt*5)*.06;}
       if(G.valid.includes(u)){const a=AB[G.sel];col=(a.target==='enemy'||a.target==='enemies')?0xff4f5e:0x6fe38c;op=.55+.35*Math.sin(rt*6);sc=1.05;}
       if(hasStatus(u,'charge')&&Math.random()<dt*40)spawnPart(V(u.root.position.x+rand(-1,1),rand(.2,u.h),u.root.position.z+rand(-1,1)),{color:u.def.bk?u.def.bk.bigColor:'#ff5a2a',size:rand(.2,.5),life:.7,v:V(0,rand(1,3),0)});
@@ -424,4 +473,5 @@ function portrait(key){
   }catch(e){portraitCache[key]='data:image/gif;base64,R0lGODlhAQABAAAAACw=';}
   return portraitCache[key];
 }
-const ptHtml=(k,lvl,cls='')=>`<span class="pt ${cls}" style="--elc:${ELEM[DEFS[k].el].c}"><img src="${portrait(k)}" alt=""><svg class="gem"><use href="#${ELEM[DEFS[k].el].i}"/></svg>${lvl?`<span class="lv">${lvl}</span>`:''}</span>`;
+const evoBadge=e=>e>1?`<span class="evb" title="Evolução ${e}">${'<svg><use href="#i-star"/></svg>'.repeat(e)}</span>`:'';
+const ptHtml=(k,lvl,cls='',evo=0)=>`<span class="pt ${cls}" style="--elc:${ELEM[DEFS[k].el].c}"><img src="${portrait(k)}" alt="">${evoBadge(evo)}<svg class="gem"><use href="#${ELEM[DEFS[k].el].i}"/></svg>${lvl?`<span class="lv">${lvl}</span>`:''}</span>`;
