@@ -1,0 +1,22 @@
+{
+  "name": "masmorra-do-rei-ogro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RPG de masmorra por turnos em 3D",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "android": "node tools/build.mjs && npx cap sync android",
+    "deploy:web": "node tools/build.mjs && firebase deploy --only hosting,firestore"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.2",
+    "@capacitor/core": "8.5.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.2",
+    "@fontsource/baloo-2": "5.3.0",
+    "@fontsource/lilita-one": "5.3.0",
+    "firebase": "12.19.0",
+    "three": "0.128.0"
+  }
+}

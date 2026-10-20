@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Masmorra do Rei Ogro</string>
+    <string name="title_activity_main">Masmorra do Rei Ogro</string>
+    <string name="package_name">br.com.lmatos.masmorra</string>
+    <string name="custom_url_scheme">br.com.lmatos.masmorra</string>
+</resources>

@@ -1,0 +1,9 @@
+{
+  "appId": "br.com.lmatos.masmorra",
+  "appName": "Masmorra do Rei Ogro",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#110c18",
+    "allowMixedContent": false
+  }
+}
