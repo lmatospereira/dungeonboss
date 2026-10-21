@@ -1,5 +1,5 @@
 {
-  "_doc": "Masmorras: nível, chefe, salas (lista de inimigos), herói recrutado na 1ª vitória e posição no mapa (x,y paisagem; mx,my retrato, em %).",
+  "_doc": "Masmorras: nível, chefe, salas (lista de inimigos), herói recrutado na 1ª vitória e posição no mapa (x,y paisagem; mx,my retrato, em %). targetWin = faixa de vitória esperada no nível da masmorra com evolução 1 (usada pelo simulador de balanceamento; padrão 70%–85%).",
   "dungeons": [
     {
       "id": "d1",
@@ -28,6 +28,10 @@
         "Três goblins guardam a entrada.",
         "O covil fica mais barulhento.",
         "Grakk defende o tesouro da tribo."
+      ],
+      "targetWin": [
+        0.85,
+        0.95
       ]
     },
     {

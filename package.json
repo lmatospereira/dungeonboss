@@ -6,7 +6,10 @@
   "scripts": {
     "build": "node tools/build.mjs",
     "android": "API_URL=${API_URL:?defina API_URL com o endereço da API} node tools/build.mjs && npx cap sync android",
-    "deploy": "dbvps deploy"
+    "deploy": "dbvps deploy",
+    "test": "node tools/docs-data.mjs --check && tools/godot.sh test",
+    "balance": "tools/godot.sh balance --write",
+    "docs": "node tools/docs-data.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.2",

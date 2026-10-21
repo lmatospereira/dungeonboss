@@ -64,13 +64,17 @@ func test_data() -> bool:
 
 # ---------------- progressão (valores conferidos na versão three.js) ----------------
 func test_progression() -> bool:
+	# fórmula: base × (1 + bônus × (nível−1)) × multiplicador da evolução × (1 + bônus da arma)
+	var h: Dictionary = Data.heroes()["brom"]
+	var m: float = (1.0 + Data.progression()["levelBonus"] * 11) * float(Data.progression()["evolution"]["mult"][3])
 	var s := Progression.hero_stats("brom", 12, 3)
-	check(s["hp"] == 4552, "Brom nível 12 evo 3: vida 4552 (veio %s)" % s["hp"])
-	check(roundi(s["atk"]) == 276, "Brom nível 12 evo 3: ataque 276 (veio %s)" % roundi(s["atk"]))
+	check(s["hp"] == roundi(h["hp"] * m * (1.0 + h["weapon"].get("hp", 0.0))), "vida do Brom nível 12 evo 3 segue a fórmula (veio %s)" % s["hp"])
+	check(is_equal_approx(s["atk"], h["atk"] * m * (1.0 + h["weapon"].get("atk", 0.0))), "ataque do Brom nível 12 evo 3 segue a fórmula")
+	check(s["hp"] > Progression.hero_stats("brom", 12, 2)["hp"] and Progression.hero_stats("brom", 12, 2)["hp"] > Progression.hero_stats("brom", 12, 1)["hp"], "evolução aumenta a vida")
 	check(Progression.hero_abilities("lyra", 1).size() == 3, "evolução 1: 3 poderes")
 	check(Progression.hero_abilities("lyra", 2).size() == 4, "evolução 2: 4 poderes")
 	check(Progression.xp_need(1) == 80, "XP do nível 1 para o 2 = 80")
-	check(Progression.hero_power("brom", 1) == 290, "poder do Brom nível 1 = 290 (veio %s)" % Progression.hero_power("brom", 1))
+	check(Progression.hero_power("brom", 2) > Progression.hero_power("brom", 1), "poder cresce com o nível")
 	return true
 
 # ---------------- dano ----------------

@@ -27,7 +27,7 @@ Versão de **navegador**, com servidor próprio na VPS do Leonardo. Android/Play
 
 ## Regras do jogo (não quebrar sem combinar)
 - Turnos por velocidade; cada herói tem 1 básico + 2 habilidades com recarga + um 4º poder (`DEFS[k].ult`, `AB[id].ult`) liberado na evolução 2.
-- Evolução 1–3 com cristais: evo 2 = +15% e 4º poder; evo 3 = +30% no total e arma lendária (`WEAPONS`). Requisitos em `EVO_REQ`.
+- Evolução 1–3 com cristais: evo 2 = bônus de atributos e 4º poder; evo 3 = mais bônus e arma lendária. Valores em `data/progression.json` e `data/heroes.json` (weapon).
 - Triângulo: Fogo > Natureza > Água > Fogo; Luz e Sombra vencem uma à outra. Vantagem 150%, desvantagem 70%.
 - Nível: +10% vida/ataque por nível (`lm(L)`), máximo 30. Tipos: Tanque, Dano, Suporte (só informativo por enquanto).
 - Chefes: kit genérico `bk` em `DEFS` (`bBasic`, `bAoe`, `bPrep`→`bBig` telegrafado, `bRage` a 50% chama reforços).

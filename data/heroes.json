@@ -40,11 +40,11 @@
       "name": "Brom",
       "role": "Guardião",
       "el": "natureza",
-      "hp": 1450,
+      "hp": 1350,
       "atk": 92,
       "spd": 88,
       "crit": 0.08,
-      "dr": 0.2,
+      "dr": 0.12,
       "ult": "fortaleza",
       "abilities": [
         "escudo",
@@ -61,9 +61,9 @@
       "weapon": {
         "name": "Machado Rachapedra",
         "desc": "Machado de pedra rúnica forjado pelos anões da montanha.",
-        "hp": 0.15,
-        "atk": 0.1,
-        "dr": 0.05,
+        "hp": 0.12,
+        "atk": 0.12,
+        "dr": 0,
         "color": "#9fe4a8"
       }
     },
@@ -101,7 +101,7 @@
       "role": "Clériga",
       "el": "luz",
       "hp": 960,
-      "atk": 96,
+      "atk": 104,
       "spd": 100,
       "crit": 0.08,
       "ult": "ressurreicao",
@@ -189,7 +189,7 @@
       "role": "Sacerdotisa",
       "el": "agua",
       "hp": 940,
-      "atk": 94,
+      "atk": 104,
       "spd": 106,
       "crit": 0.08,
       "ult": "mareAlta",
@@ -209,7 +209,7 @@
         "name": "Tridente Coral",
         "desc": "Tridente do fundo do mar que guarda a força das correntes.",
         "hp": 0.15,
-        "atk": 0.12,
+        "atk": 0.18,
         "color": "#9fe4ff"
       }
     },

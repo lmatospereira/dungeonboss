@@ -19,7 +19,7 @@
         "cd": 4,
         "start": 0,
         "turns": 2,
-        "shieldMaxHp": 0.25
+        "shieldMaxHp": 0.18
       },
       "text": "Atrai os ataques individuais por {turns} turnos e ganha escudo de {shieldMaxHp|pct} da vida."
     },
@@ -29,8 +29,8 @@
       "target": "enemies",
       "values": {
         "cd": 4,
-        "dmg": 0.7,
-        "stun": 0.35
+        "dmg": 0.6,
+        "stun": 0.2
       },
       "text": "{dmg|pct} de dano em todos os inimigos e {stun|pct} de chance de atordoar cada um."
     },
@@ -44,7 +44,7 @@
         "cd": 5,
         "start": 1,
         "turns": 2,
-        "shieldMaxHp": 0.15
+        "shieldMaxHp": 0.1
       },
       "text": "Dá a todos os aliados um escudo de {shieldMaxHp|pct} da vida máxima do Brom por {turns} turnos e provoca os inimigos."
     },
@@ -77,7 +77,7 @@
       "target": "enemies",
       "values": {
         "cd": 5,
-        "dmg": 1.2,
+        "dmg": 1.05,
         "burn": 0.25,
         "turns": 2
       },
@@ -91,8 +91,8 @@
       "values": {
         "cd": 5,
         "start": 1,
-        "dmg": 3.2,
-        "burn": 0.5,
+        "dmg": 2.5,
+        "burn": 0.4,
         "turns": 3
       },
       "text": "{dmg|pct} de dano em um inimigo e queimadura forte por {turns} turnos."
@@ -103,7 +103,7 @@
       "target": "enemy",
       "values": {
         "cd": 0,
-        "dmg": 1
+        "dmg": 1.1
       },
       "text": "{dmg|pct} de dano em um inimigo."
     },
@@ -115,7 +115,7 @@
       "values": {
         "cd": 2,
         "start": 0,
-        "heal": 2.8
+        "heal": 3.0
       },
       "text": "Cura um aliado em {heal|pct} do ataque."
     },
@@ -126,7 +126,7 @@
       "kind": "heal",
       "values": {
         "cd": 4,
-        "heal": 1.5
+        "heal": 1.7
       },
       "text": "Cura todos os aliados em {heal|pct} do ataque e remove veneno, queimadura e atordoamento."
     },
@@ -161,7 +161,7 @@
         "cd": 3,
         "start": 1,
         "dmg": 1.4,
-        "poison": 0.4,
+        "poison": 0.5,
         "turns": 3
       },
       "text": "{dmg|pct} de dano e veneno por {turns} turnos."
@@ -187,7 +187,7 @@
       "values": {
         "cd": 4,
         "start": 1,
-        "dmg": 0.55,
+        "dmg": 0.7,
         "hits": 4,
         "critBonus": 0.15
       },
@@ -210,7 +210,7 @@
       "values": {
         "cd": 3,
         "start": 1,
-        "dmg": 2.1,
+        "dmg": 1.9,
         "critBonus": 0.2
       },
       "text": "{dmg|pct} de dano que atravessa escudos, com +{critBonus|pct} de chance de crítico."
@@ -243,7 +243,7 @@
       "target": "enemy",
       "values": {
         "cd": 0,
-        "dmg": 1
+        "dmg": 1.15
       },
       "text": "{dmg|pct} de dano em um inimigo."
     },
@@ -255,7 +255,7 @@
       "values": {
         "cd": 3,
         "start": 1,
-        "heal": 1.1
+        "heal": 1.4
       },
       "text": "Cura todos os aliados em {heal|pct} do ataque."
     },
@@ -267,7 +267,7 @@
       "values": {
         "cd": 4,
         "start": 0,
-        "shield": 1.8,
+        "shield": 2.2,
         "turns": 2
       },
       "text": "Dá a todos os aliados um escudo de {shield|pct} do ataque por {turns} turnos."
@@ -281,7 +281,7 @@
         "cd": 5,
         "start": 1,
         "dmg": 0.8,
-        "heal": 0.7
+        "heal": 0.9
       },
       "text": "{dmg|pct} de dano em todos os inimigos e cura todos os aliados em {heal|pct} do ataque."
     },
@@ -327,7 +327,7 @@
       "values": {
         "cd": 5,
         "start": 1,
-        "dmg": 2.6,
+        "dmg": 2.9,
         "lifesteal": 0.5
       },
       "text": "{dmg|pct} de dano em um inimigo e recupera {lifesteal|pct} do dano causado."

@@ -34,9 +34,7 @@ O jogador monta uma equipe de 4 heróis, atravessa masmorras com 2 salas e um ch
 - **Ordem dos turnos:** depende da velocidade de cada unidade. Quem é mais rápido age mais vezes, e a ordem aparece no topo da tela.
 - **Poderes:** cada herói tem 1 ataque básico e 2 habilidades com recarga. A partir da evolução 2, ganha também um 4º poder, o **poder supremo**.
 - **Como agir:** na vez de um herói, o jogador toca num poder e depois no alvo. Poderes de área ou em si mesmo pedem um segundo toque no próprio botão.
-- **Crítico:** causa 160% do dano.
 - **Escudo:** absorve dano antes da vida. A Flecha Perfurante atravessa escudos.
-- **Entre salas:** ao limpar uma sala, a equipe recupera 15% da vida.
 - **AUTO:** a IA joga pelos heróis. É a mesma IA que controla as equipes de defesa na Invasão.
 - **2x:** dobra a velocidade das animações.
 - **Sair:** abandonar a luta pede confirmação. Na masmorra, você fica com a recompensa das salas já limpas; na Invasão, conta como derrota.
@@ -51,7 +49,11 @@ O jogador monta uma equipe de 4 heróis, atravessa masmorras com 2 salas e um ch
 
 - Fogo vence Natureza, Natureza vence Água e Água vence Fogo.
 - Luz e Sombra causam dano extra uma na outra.
-- **Vantagem:** 150% de dano. **Desvantagem:** 70% de dano.
+<!-- gerado:regras -->
+- Vantagem de elemento: **150%** do dano. Desvantagem: **70%**.
+- Crítico: **160%** do dano. Variação aleatória do dano: ±8%.
+- Ao limpar uma sala, a equipe recupera **15%** da vida. Fúria: +30% de ataque.
+<!-- /gerado:regras -->
 - O jogo mostra a regra em vários lugares:
   - na escolha da equipe, com um diagrama e ▲/▼ em cada herói, conforme ele vai bem ou mal contra o chefe;
   - na batalha, com setas sobre cada inimigo durante a vez do seu herói;
@@ -72,16 +74,18 @@ O jogador monta uma equipe de 4 heróis, atravessa masmorras com 2 salas e um ch
 
 Os tipos (Tanque, Dano e Suporte) por enquanto só descrevem o papel do herói. Eles não mudam o dano.
 
-| Herói | Tipo · função | Elemento | Vida | Ataque | Velocidade | Crítico | Como conseguir |
-|---|---|---|---|---|---|---|---|
-| Brom | Tanque · Guardião | Natureza | 1450 | 92 | 88 | 8% | Inicial (20% de defesa) |
-| Rook | Tanque · Berserker | Fogo | 1180 | 124 | 96 | 15% | Vencer Grakk (8% de defesa) |
-| Lyra | Dano · Piromante | Fogo | 820 | 148 | 108 | 12% | Inicial |
-| Vex | Dano · Ladino | Sombra | 880 | 132 | 122 | 30% | Inicial |
-| Kai | Dano · Arqueiro | Água | 860 | 128 | 114 | 20% | Inicial |
-| Nyx | Dano · Necromante | Sombra | 840 | 136 | 104 | 10% | Vencer Morvhal |
-| Alva | Suporte · Clériga | Luz | 960 | 96 | 100 | 8% | Inicial |
-| Mira | Suporte · Sacerdotisa | Água | 940 | 94 | 106 | 8% | Inicial |
+<!-- gerado:herois -->
+| Herói | Tipo · função | Elemento | Vida | Ataque | Velocidade | Crítico | Defesa | Como conseguir |
+|---|---|---|---|---|---|---|---|---|
+| Brom | Tanque · Guardião | Natureza | 1350 | 92 | 88 | 8% | 12% | Inicial |
+| Lyra | Dano · Piromante | Fogo | 820 | 148 | 108 | 12% | 0% | Inicial |
+| Alva | Suporte · Clériga | Luz | 960 | 104 | 100 | 8% | 0% | Inicial |
+| Vex | Dano · Ladino | Sombra | 880 | 132 | 122 | 30% | 0% | Inicial |
+| Kai | Dano · Arqueiro | Água | 860 | 128 | 114 | 20% | 0% | Inicial |
+| Mira | Suporte · Sacerdotisa | Água | 940 | 104 | 106 | 8% | 0% | Inicial |
+| Rook | Tanque · Berserker | Fogo | 1180 | 124 | 96 | 15% | 8% | Vencer Grakk |
+| Nyx | Dano · Necromante | Sombra | 840 | 136 | 104 | 10% | 0% | Vencer Morvhal |
+<!-- /gerado:herois -->
 
 Os valores são os do nível 1 e da evolução 1.
 
@@ -89,29 +93,33 @@ Os valores são os do nível 1 e da evolução 1.
 
 A recarga é contada em turnos do próprio herói. O 4º poder só libera na evolução 2.
 
+<!-- gerado:poderes -->
 | Herói | Básico | Habilidade 1 | Habilidade 2 | 4º poder (evolução 2) |
 |---|---|---|---|---|
-| Brom | Golpe de Escudo: 100% | Provocar (4): provoca 2 turnos e ganha escudo de 25% da vida | Terremoto (4): 70% em todos e 35% de chance de atordoar | **Fortaleza** (5): escudo de 15% da vida do Brom em todos os aliados e provoca |
-| Lyra | Faísca: 100% | Bola de Fogo (3): 220% e queimadura | Chuva de Meteoros (5): 120% em todos e queimadura | **Explosão Solar** (5): 320% e queimadura forte por 3 turnos |
-| Alva | Luz Sagrada: 100% | Prece (2): cura 280% do ataque num aliado | Bênção Coletiva (4): cura 150% em todos e remove veneno, queimadura e atordoamento | **Ressurreição** (6): traz um aliado caído de volta com 45% da vida |
-| Vex | Corte Duplo: 2×55% | Lâmina Venenosa (3): 140% e veneno por 3 turnos | Execução (4): 250%, ou +60% se o alvo estiver abaixo de 30% | **Dança das Sombras** (4): 4 golpes de 55% em alvos aleatórios, com +15% de crítico |
-| Kai | Tiro Certeiro: 100% | Flecha Perfurante (3): 210% que atravessa escudo, com +20% de crítico | Chuva de Flechas (4): 85% em todos | **Tiro Atordoante** (5): 160% e atordoa |
-| Mira | Jato d'Água: 100% | Onda Curativa (3): cura 110% em todos | Bolha Protetora (4): escudo de 180% do ataque em todos | **Maré Alta** (5): 80% em todos e cura 70% em todos |
-| Rook | Machadada: 100% | Sede de Batalha (4): +30% de ataque e recupera 15% da vida | Redemoinho (4): 90% em todos e queimadura | **Fúria Sanguinária** (5): 260% e recupera 50% do dano |
-| Nyx | Toque Sombrio: 100% | Drenar Vida (3): 170% e recupera 60% do dano | Maldição (4): 45% em todos e veneno por 3 turnos | **Colheita de Almas** (5): 110% em todos e recupera 35% do dano total |
+| Brom | Golpe de Escudo: 100% de dano em um inimigo. | Provocar (4): Atrai os ataques individuais por 2 turnos e ganha escudo de 18% da vida. | Terremoto (4): 60% de dano em todos os inimigos e 20% de chance de atordoar cada um. | **Fortaleza (5): Dá a todos os aliados um escudo de 10% da vida máxima do Brom por 2 turnos e provoca os inimigos.** |
+| Lyra | Faísca: 100% de dano em um inimigo. | Bola de Fogo (3): 220% de dano e queimadura por 2 turnos. | Chuva de Meteoros (5): 105% de dano em todos os inimigos e queimadura por 2 turnos. | **Explosão Solar (5): 250% de dano em um inimigo e queimadura forte por 3 turnos.** |
+| Alva | Luz Sagrada: 110% de dano em um inimigo. | Prece (2): Cura um aliado em 300% do ataque. | Bênção Coletiva (4): Cura todos os aliados em 170% do ataque e remove veneno, queimadura e atordoamento. | **Ressurreição (6): Traz de volta um aliado caído com 45% da vida.** |
+| Vex | Corte Duplo: 2 golpes de 55% em um inimigo. | Lâmina Venenosa (3): 140% de dano e veneno por 3 turnos. | Execução (4): 250% de dano, com +60% se o alvo estiver abaixo de 30% de vida. | **Dança das Sombras (4): 4 golpes de 70% em inimigos aleatórios, com +15% de chance de crítico.** |
+| Kai | Tiro Certeiro: 100% de dano em um inimigo. | Flecha Perfurante (3): 190% de dano que atravessa escudos, com +20% de chance de crítico. | Chuva de Flechas (4): 85% de dano em todos os inimigos. | **Tiro Atordoante (5): 160% de dano e atordoa o alvo por 1 turno.** |
+| Mira | Jato d'Água: 115% de dano em um inimigo. | Onda Curativa (3): Cura todos os aliados em 140% do ataque. | Bolha Protetora (4): Dá a todos os aliados um escudo de 220% do ataque por 2 turnos. | **Maré Alta (5): 80% de dano em todos os inimigos e cura todos os aliados em 90% do ataque.** |
+| Rook | Machadada: 100% de dano em um inimigo. | Sede de Batalha (4): Ganha +30% de ataque por 2 turnos e recupera 15% da vida. | Redemoinho (4): 90% de dano em todos os inimigos e queimadura por 2 turnos. | **Fúria Sanguinária (5): 290% de dano em um inimigo e recupera 50% do dano causado.** |
+| Nyx | Toque Sombrio: 100% de dano em um inimigo. | Drenar Vida (3): 170% de dano e recupera 60% do dano causado. | Maldição (4): 45% de dano em todos os inimigos e veneno por 3 turnos. | **Colheita de Almas (5): 110% de dano em todos os inimigos; Nyx recupera 35% do dano total.** |
+<!-- /gerado:poderes -->
 
 ### Armas lendárias (evolução 3)
 
+<!-- gerado:armas -->
 | Herói | Arma | Bônus |
 |---|---|---|
-| Brom | Machado Rachapedra | +15% vida, +10% ataque, +5% defesa |
+| Brom | Machado Rachapedra | +12% vida, +12% ataque |
 | Lyra | Cajado da Fênix | +22% ataque, +5% crítico |
 | Alva | Maça da Aurora | +12% vida, +15% ataque |
 | Vex | Adagas do Eclipse | +15% ataque, +10% crítico, +6 velocidade |
 | Kai | Arco das Marés | +20% ataque, +8% crítico |
-| Mira | Tridente Coral | +15% vida, +12% ataque |
+| Mira | Tridente Coral | +15% vida, +18% ataque |
 | Rook | Machados Brasa Viva | +10% vida, +20% ataque |
 | Nyx | Foice das Almas | +8% vida, +20% ataque, +5% crítico |
+<!-- /gerado:armas -->
 
 Na batalha, a arma lendária brilha e solta faíscas.
 
@@ -124,11 +132,13 @@ Na batalha, a arma lendária brilha e solta faíscas.
 
 **Evolução (1 a 3)**
 
+<!-- gerado:evolucao -->
 | Evolução | Requisitos | Efeito |
 |---|---|---|
 | 1 | Forma inicial | 3 poderes |
-| 2 | Nível 5, 3 cristais e 300 de ouro | +15% de vida e ataque e libera o **4º poder** |
-| 3 | Nível 12, 8 cristais e 1.500 de ouro | +15% de novo (30% no total) e libera a **arma lendária** |
+| 2 | Nível 5, 3 cristais e 300 de ouro | +8% de vida e ataque e libera o **4º poder** |
+| 3 | Nível 12, 8 cristais e 1.500 de ouro | +16% no total e libera a **arma lendária** |
+<!-- /gerado:evolucao -->
 
 O multiplicador total de atributos é `nível × evolução × arma`. Os retratos mostram estrelas com a evolução de cada herói.
 
@@ -138,18 +148,22 @@ O multiplicador total de atributos é `nível × evolução × arma`. Os retrato
 
 Cada masmorra tem 2 salas de inimigos e um chefe. Vencer a anterior libera a próxima.
 
-| Masmorra | Nível | Inimigos | Chefe (elemento) | Recompensa especial |
+<!-- gerado:masmorras -->
+| Masmorra | Nível | Inimigos | Chefe (elemento, vida, ataque no nível 1) | Recompensa especial |
 |---|---|---|---|---|
-| Covil dos Goblins | 1 | Goblins lanceiros, goblins arqueiros e um xamã | Grakk, Chefe Goblin (Natureza) | Recruta o Rook |
-| Cripta Esquecida | 4 | Esqueletos guerreiros e esqueletos arcanos | Morvhal, o Lich (Sombra) | Recruta a Nyx |
-| Pântano do Lodo | 8 | Xamãs, goblins e arqueiros | Gorruk, Rei Ogro do Lodo (Água) | — |
-| Forja Infernal | 12 | Diabretes e brutos de magma | Ignar, Golem da Forja (Fogo) | — |
+| Covil dos Goblins | 1 | Goblin Lanceiro, Goblin Arqueiro, Xamã do Lodo | Grakk, Chefe Goblin (Natureza, 5600, 136) | Recruta Rook |
+| Cripta Esquecida | 4 | Esqueleto Guerreiro, Esqueleto Arcano | Morvhal, o Lich (Sombra, 5800, 130) | Recruta Nyx |
+| Pântano do Lodo | 8 | Xamã do Lodo, Goblin Lanceiro, Goblin Arqueiro | Gorruk, Rei Ogro do Lodo (Água, 3900, 128) | — |
+| Forja Infernal | 12 | Diabrete, Bruto de Magma | Ignar, Golem da Forja (Fogo, 7200, 134) | — |
+<!-- /gerado:masmorras -->
 
 **Padrão dos chefes:**
+<!-- gerado:chefe -->
 - **Ataque básico:** 130% num alvo.
-- **Ataque em área:** 75% em todos, a cada 3 turnos. Pode aplicar veneno ou queimadura, conforme o chefe.
-- **Golpe telegrafado:** de 4 em 4 turnos o chefe se prepara, e a faixa "… no próximo turno!" avisa. No turno seguinte ele usa o golpe forte: 190% em todos.
+- **Ataque em área:** 75% em todos, com recarga de 3 turnos (usado com 60% de chance quando pronto). Pode aplicar veneno ou queimadura, conforme o chefe.
+- **Golpe telegrafado:** de 4 em 4 ações o chefe se prepara, e a faixa "… no próximo turno!" avisa. No turno seguinte ele usa o golpe forte: 190% em todos.
 - **Fúria:** abaixo de 50% de vida, o chefe ganha +30% de ataque e chama 2 reforços.
+<!-- /gerado:chefe -->
 
 ## Invasão (PvP assíncrono)
 
