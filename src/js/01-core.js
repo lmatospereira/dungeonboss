@@ -46,13 +46,15 @@ const sfx={
 
 /* ---------- elementos ---------- */
 const ELEM={
-  fogo:{n:'Fogo',c:'#ff6a3d',i:'i-fire',beats:'natureza'},
-  natureza:{n:'Natureza',c:'#6ad16a',i:'i-leaf',beats:'agua'},
-  agua:{n:'Água',c:'#45aaff',i:'i-drop',beats:'fogo'},
-  luz:{n:'Luz',c:'#ffd75e',i:'i-sun',beats:'sombra'},
-  sombra:{n:'Sombra',c:'#b47bff',i:'i-moon',beats:'luz'}
+  fogo:{c:'#ff6a3d',i:'i-fire'},
+  natureza:{c:'#6ad16a',i:'i-leaf'},
+  agua:{c:'#45aaff',i:'i-drop'},
+  luz:{c:'#ffd75e',i:'i-sun'},
+  sombra:{c:'#b47bff',i:'i-moon'}
 };
-function elemMult(a,d){if(ELEM[a].beats===d)return 1.5;if(ELEM[d].beats===a)return .7;return 1;}
+/* nome e vantagem de cada elemento vêm de data/rules.json; aqui só cor e ícone */
+for(const [k,e] of Object.entries(DATA.rules.elements))Object.assign(ELEM[k],{n:e.name,beats:e.beats});
+function elemMult(a,d){if(ELEM[a].beats===d)return RULES.elemAdv;if(ELEM[d].beats===a)return RULES.elemDis;return 1;}
 const gemSvg=el=>`<svg class="gem" style="color:${ELEM[el].c}"><use href="#${ELEM[el].i}"/></svg>`;
 
 let toastTimer=0;

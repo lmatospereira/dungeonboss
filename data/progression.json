@@ -1,0 +1,74 @@
+{
+  "_doc": "Progressão: nível (bônus por nível, XP, custo de treino), evolução, fórmula de poder e recompensas.",
+  "maxLevel": 30,
+  "levelBonus": 0.1,
+  "xpNeed": {
+    "base": 40,
+    "perLevel": 40
+  },
+  "trainCost": {
+    "perLevel": 40,
+    "growth": 1.1
+  },
+  "evolution": {
+    "max": 3,
+    "mult": [
+      1,
+      1,
+      1.15,
+      1.3
+    ],
+    "require": {
+      "2": {
+        "lvl": 5,
+        "crystals": 3,
+        "gold": 300
+      },
+      "3": {
+        "lvl": 12,
+        "crystals": 8,
+        "gold": 1500
+      }
+    }
+  },
+  "power": {
+    "hp": 0.1,
+    "atk": 1.5,
+    "critWeight": 0.6,
+    "evoBonusPerLevel": 40,
+    "recommendedHp": 1000,
+    "recommendedAtk": 120
+  },
+  "rewards": {
+    "roomXp": {
+      "base": 30,
+      "perLevel": 12
+    },
+    "roomGold": {
+      "base": 25,
+      "perLevel": 10
+    },
+    "bossXpMult": 2,
+    "bossGoldMult": 3,
+    "firstClearGoldPerLevel": 100,
+    "crystalsFirstClear": 3,
+    "crystalsRepeat": 1,
+    "stars": {
+      "three": 4,
+      "two": 2
+    },
+    "arena": {
+      "winGoldBase": 60,
+      "winGoldPerLevel": 6,
+      "loseGold": 15,
+      "winXp": 50,
+      "loseXp": 15,
+      "winCrystals": 1
+    }
+  },
+  "start": {
+    "gold": 100,
+    "crystals": 0,
+    "rating": 1000
+  }
+}

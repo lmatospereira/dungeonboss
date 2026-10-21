@@ -12,7 +12,10 @@ const nm=p=>join(root,'node_modules',p);
 const css=r('src/style.css');
 const body=r('src/body.html');
 const jsFiles=readdirSync(join(root,'src/js')).filter(f=>f.endsWith('.js')).sort();
-const js="(function(){'use strict';\n"+jsFiles.map(f=>`/* ${f} */\n`+r('src/js/'+f)).join('\n')+"\n})();";
+// data/*.json é a fonte única dos números do jogo; vira a constante DATA dentro do jogo
+const dataFiles=readdirSync(join(root,'data')).filter(f=>f.endsWith('.json')).sort();
+const DATA=Object.fromEntries(dataFiles.map(f=>[f.replace(/\.json$/,''),JSON.parse(r('data/'+f))]));
+const js="(function(){'use strict';\nconst DATA="+JSON.stringify(DATA)+";\n"+jsFiles.map(f=>`/* ${f} */\n`+r('src/js/'+f)).join('\n')+"\n})();";
 const TITLE='Masmorra do Rei Ogro';
 
 // ---------- versão artifact (arquivo único) ----------

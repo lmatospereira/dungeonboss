@@ -248,7 +248,7 @@ async function checkEnd(){
     if(G.room<G.rooms.length-1){
       G.state='transition';G.current=null;refreshUI();
       banner('Sala limpa!','Vitória parcial','A equipe recupera 15% da vida.',false,1500);
-      for(const h of aliveHeroes()){h.status=[];h.refresh();healUnit(h,h.maxHp*.15);healFx(h);
+      for(const h of aliveHeroes()){h.status=[];h.refresh();healUnit(h,h.maxHp*RULES.roomHeal);healFx(h);
         tween(380,(k,raw)=>{h.root.position.y=Math.sin(raw*Math.PI)*.7;},E.lin);}
       sfx.heal();await wait(1500);
       enterRoom(G.room+1,false);
@@ -265,12 +265,12 @@ function computeRewards(win,quit,server=null){
   let xp=0;
   if(G.mode==='dungeon'){
     const d=G.dungeon;
-    for(let i=0;i<G.cleared;i++){const boss=!!G.rooms[i].boss,L=G.rooms[i].enemies[0].lvl;xp+=roomXp(L)*(boss?2:1);res.gold+=roomGold(L)*(boss?3:1);}
+    for(let i=0;i<G.cleared;i++){const boss=!!G.rooms[i].boss,L=G.rooms[i].enemies[0].lvl;xp+=roomXp(L)*(boss?RW.bossXpMult:1);res.gold+=roomGold(L)*(boss?RW.bossGoldMult:1);}
     if(win){
-      res.stars=Math.max(1,aliveHeroes().length===4?3:aliveHeroes().length>=2?2:1);
+      const n=aliveHeroes().length;res.stars=n>=RW.stars.three?3:n>=RW.stars.two?2:1;
       const prev=SAVE.stars[d.id]||0;if(res.stars>prev)SAVE.stars[d.id]=res.stars;
-      if(!prev){res.gold+=100*d.lvl;res.firstClear=true;}
-      res.crystals=prev?1:3;
+      if(!prev){res.gold+=RW.firstClearGoldPerLevel*d.lvl;res.firstClear=true;}
+      res.crystals=prev?RW.crystalsRepeat:RW.crystalsFirstClear;
       if(d.unlockHero&&!SAVE.unlocked.includes(d.unlockHero)){SAVE.unlocked.push(d.unlockHero);res.unlocked=d.unlockHero;}
     }
   }else{
@@ -282,7 +282,7 @@ function computeRewards(win,quit,server=null){
       SAVE.rating=Math.max(0,SAVE.rating+res.delta);
       if(win)SAVE.wins++;else SAVE.losses++;
     }
-    res.gold=win?Math.round(60+6*avg):15;xp=win?50:15;res.crystals=win?1:0;
+    const A=RW.arena;res.gold=win?Math.round(A.winGoldBase+A.winGoldPerLevel*avg):A.loseGold;xp=win?A.winXp:A.loseXp;res.crystals=win?A.winCrystals:0;
   }
   SAVE.gold+=res.gold;SAVE.crystals+=res.crystals;
   for(const k of team){const before={lvl:lvlOf(k),xp:SAVE.heroes[k].xp};const r=grantXp(k,xp);res.xp.push({k,before,gained:xp,to:r.to});}

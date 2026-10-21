@@ -1,0 +1,261 @@
+{
+  "_doc": "Inimigos e chefes. bk = nomes, cores e reforços do kit comum de chefe (números do kit em abilities.json: bBasic, bAoe, bPrep, bBig, bRage).",
+  "enemies": {
+    "goblin": {
+      "name": "Goblin Lanceiro",
+      "el": "natureza",
+      "hp": 420,
+      "atk": 72,
+      "spd": 96,
+      "abilities": [
+        "lanca"
+      ],
+      "view": {
+        "model": "goblin",
+        "height": 2.05,
+        "radius": 0.5,
+        "scale": 0.85
+      }
+    },
+    "arqueiro": {
+      "name": "Goblin Arqueiro",
+      "el": "natureza",
+      "hp": 340,
+      "atk": 86,
+      "spd": 114,
+      "abilities": [
+        "flecha"
+      ],
+      "view": {
+        "model": "arqueiro",
+        "height": 2.05,
+        "radius": 0.5,
+        "scale": 0.85
+      }
+    },
+    "xama": {
+      "name": "Xamã do Lodo",
+      "el": "agua",
+      "hp": 500,
+      "atk": 74,
+      "spd": 98,
+      "abilities": [
+        "jato",
+        "curaLodo"
+      ],
+      "view": {
+        "model": "xama",
+        "height": 2.3,
+        "radius": 0.5,
+        "scale": 0.9
+      }
+    },
+    "esqueleto": {
+      "name": "Esqueleto Guerreiro",
+      "el": "sombra",
+      "hp": 600,
+      "atk": 92,
+      "spd": 86,
+      "abilities": [
+        "espada"
+      ],
+      "view": {
+        "model": "esqueleto",
+        "height": 2.05,
+        "radius": 0.5,
+        "scale": 0.95
+      }
+    },
+    "magoEsq": {
+      "name": "Esqueleto Arcano",
+      "el": "sombra",
+      "hp": 440,
+      "atk": 98,
+      "spd": 104,
+      "abilities": [
+        "raio",
+        "rajada"
+      ],
+      "view": {
+        "model": "magoEsq",
+        "height": 2.3,
+        "radius": 0.5,
+        "scale": 0.95
+      }
+    },
+    "diabrete": {
+      "name": "Diabrete",
+      "el": "fogo",
+      "hp": 420,
+      "atk": 100,
+      "spd": 116,
+      "abilities": [
+        "brasa",
+        "rajadaFogo"
+      ],
+      "view": {
+        "model": "diabrete",
+        "height": 2.1,
+        "radius": 0.5,
+        "scale": 0.85
+      }
+    },
+    "bruto": {
+      "name": "Bruto de Magma",
+      "el": "fogo",
+      "hp": 720,
+      "atk": 96,
+      "spd": 84,
+      "dr": 0.1,
+      "abilities": [
+        "pancada"
+      ],
+      "view": {
+        "model": "bruto",
+        "height": 2.2,
+        "radius": 0.55,
+        "scale": 1
+      }
+    }
+  },
+  "bosses": {
+    "grakk": {
+      "name": "Grakk, Chefe Goblin",
+      "short": "Grakk",
+      "el": "natureza",
+      "hp": 2600,
+      "atk": 100,
+      "spd": 94,
+      "crit": 0.1,
+      "abilities": [
+        "bBasic",
+        "bAoe"
+      ],
+      "boss": true,
+      "stunImmune": true,
+      "bk": {
+        "basic": "Machadada",
+        "melee": true,
+        "aoe": "Chuva de Lanças",
+        "aoeColor": "#c9a046",
+        "aoeStatus": null,
+        "prep": "Ergue o Machado",
+        "big": "Golpe Devastador",
+        "bigColor": "#ffcf5a",
+        "rage": "Grito de Guerra",
+        "adds": "goblin",
+        "quote": "Grakk ergue o machado"
+      },
+      "view": {
+        "model": "grakk",
+        "height": 2.3,
+        "radius": 0.6,
+        "scale": 1.55
+      }
+    },
+    "lich": {
+      "name": "Morvhal, o Lich",
+      "short": "Morvhal",
+      "el": "sombra",
+      "hp": 3100,
+      "atk": 118,
+      "spd": 100,
+      "crit": 0.1,
+      "abilities": [
+        "bBasic",
+        "bAoe"
+      ],
+      "boss": true,
+      "stunImmune": true,
+      "bk": {
+        "basic": "Raio da Morte",
+        "melee": false,
+        "boltColor": "#5ef0a0",
+        "aoe": "Praga",
+        "aoeColor": "#5ef0a0",
+        "aoeStatus": "poison",
+        "prep": "Canaliza a Ceifa",
+        "big": "Ceifa das Almas",
+        "bigColor": "#5ef0a0",
+        "rage": "Erguer os Mortos",
+        "adds": "esqueleto",
+        "quote": "Morvhal canaliza energia"
+      },
+      "view": {
+        "model": "lich",
+        "height": 2.3,
+        "radius": 0.6,
+        "scale": 1.55
+      }
+    },
+    "gorruk": {
+      "name": "Gorruk, Rei Ogro do Lodo",
+      "short": "Gorruk",
+      "el": "agua",
+      "hp": 3900,
+      "atk": 138,
+      "spd": 92,
+      "crit": 0.1,
+      "abilities": [
+        "bBasic",
+        "bAoe"
+      ],
+      "boss": true,
+      "stunImmune": true,
+      "bk": {
+        "basic": "Clavada",
+        "melee": true,
+        "aoe": "Onda de Lodo",
+        "aoeColor": "#48c6ff",
+        "aoeStatus": "poison",
+        "prep": "Ergue a Clava",
+        "big": "Esmagamento",
+        "bigColor": "#ff6a3d",
+        "rage": "Fúria do Rei",
+        "adds": "xama",
+        "quote": "Gorruk ergue a clava"
+      },
+      "view": {
+        "model": "gorruk",
+        "height": 2.3,
+        "radius": 0.6,
+        "scale": 1.7
+      }
+    },
+    "ignar": {
+      "name": "Ignar, Golem da Forja",
+      "short": "Ignar",
+      "el": "fogo",
+      "hp": 4400,
+      "atk": 146,
+      "spd": 88,
+      "crit": 0.1,
+      "dr": 0.1,
+      "abilities": [
+        "bBasic",
+        "bAoe"
+      ],
+      "boss": true,
+      "stunImmune": true,
+      "bk": {
+        "basic": "Punho de Lava",
+        "melee": true,
+        "aoe": "Erupção",
+        "aoeColor": "#ff6a1a",
+        "aoeStatus": "burn",
+        "prep": "Núcleo Superaquecido",
+        "big": "Cataclismo",
+        "bigColor": "#ff4a1a",
+        "rage": "Forja Desperta",
+        "adds": "diabrete",
+        "quote": "O núcleo de Ignar brilha"
+      },
+      "view": {
+        "model": "ignar",
+        "height": 2.3,
+        "radius": 0.65,
+        "scale": 1.65
+      }
+    }
+  }
+}

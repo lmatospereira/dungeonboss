@@ -19,7 +19,8 @@ proxy reverso já existente na VPS (Caddy, porta 443)   ← opcional; sem ele, a
 
 | Pasta | Conteúdo |
 |---|---|
-| `src/` | Código do jogo: `style.css`, `body.html` (símbolos SVG e DOM) e `js/*.js`. É aqui que se edita. |
+| `data/` | **Fonte única dos números do jogo**: heróis, inimigos, chefes, habilidades (valores, alvo e texto), masmorras, regras e progressão. |
+| `src/` | Código da versão three.js: `style.css`, `body.html` (símbolos SVG e DOM) e `js/*.js`. |
 | `tools/build.mjs` | Monta `www/` (site e app) e `dist/artifact.html` (arquivo único). |
 | `www/` | Gerado pelo build. Não fica no git. |
 | `server/` | API: `src/index.js` (rotas) e `src/db.js` (conexão e migrações). |
@@ -31,7 +32,7 @@ proxy reverso já existente na VPS (Caddy, porta 443)   ← opcional; sem ele, a
 
 ### Build
 
-O `tools/build.mjs` concatena `src/js/*.js` **em ordem alfabética** dentro de uma única função (IIFE). Por isso todos os módulos compartilham o mesmo escopo, e não existe `import`/`export`. Um arquivo novo precisa de um prefixo numérico que o coloque depois das dependências dele.
+O `tools/build.mjs` lê `data/*.json` e embute tudo como a constante `DATA`. Depois concatena `src/js/*.js` **em ordem alfabética** dentro de uma única função (IIFE). Por isso todos os módulos compartilham o mesmo escopo, e não existe `import`/`export`. Um arquivo novo precisa de um prefixo numérico que o coloque depois das dependências dele.
 
 O build gera duas saídas:
 
@@ -49,7 +50,8 @@ O build também grava `www/config.js` com `window.MASMORRA_API = process.env.API
 | `01-core.js` | Utilidades, tweens, som sintetizado com WebAudio (sem arquivos de áudio), elementos e `toast` |
 | `02-scene.js` | Renderizador three.js r128, luzes, temas das salas, cenário em instancing e partículas |
 | `03-models.js` | Modelos chibi feitos de primitivas: `chibi()`, `cape()`, `staff()`, `addWeaponGlow()` etc. |
-| `04-data.js` | `DEFS` (heróis, inimigos e chefes), `DUNGEONS`, fórmulas de nível e evolução, `WEAPONS`, `HERO_INFO` e salvamento local (`SAVE`) |
+| `04-data.js` | Monta `DEFS`, `DUNGEONS`, `WEAPONS` e `HERO_INFO` a partir de `DATA`; fórmulas de nível, evolução, poder e recompensas; salvamento local (`SAVE`) |
+| `045-balance.js` | `RULES` e `BAL` (números das habilidades, lidos de `DATA`) e `abilityText()`, que gera a descrição a partir do template |
 | `05-battle.js` | `Unit`, dano, status, `AB` (todas as habilidades), IA, `revive`, posicionamento, câmera, laço de render e retratos |
 | `06-flow.js` | HUD da batalha, seleção de alvo, fluxo de salas e turnos, recompensas e controles |
 | `07-net.js` | `Net`: cliente da API (contas, sincronização, Invasão e ranking), com modo offline e oponentes simulados |
@@ -62,7 +64,7 @@ O build também grava `www/config.js` com `window.MASMORRA_API = process.env.API
 - **Unidade (`Unit`):** recebe `(chave, lado, nível, evolução)`.
   - Os atributos dos heróis vêm de `heroStats()`, que aplica nível, evolução e arma. Os dos inimigos vêm de `lm(nível)`.
   - `unit.abilities` vem de `heroAbilities()`, que só inclui o 4º poder (`DEFS[k].ult`) a partir da evolução 2.
-- **Habilidade (`AB[id]`):** tem estes campos:
+- **Habilidade (`AB[id]`):** em `05-battle.js` fica só a lógica e a animação (`run`, `ai`, `aiTarget`). Nome, ícone, alvo, recarga, números e texto vêm de `data/abilities.json`. Ao carregar, o jogo falha com uma mensagem clara se faltar a lógica de uma habilidade que está nos dados, ou o contrário. Campos de cada habilidade:
   - `name`, `icon` e `desc`;
   - `cd` (recarga) e `start` (recarga inicial);
   - `target`: `enemy`, `enemies`, `ally`, `allies`, `self` ou `fallen`;

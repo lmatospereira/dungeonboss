@@ -32,7 +32,7 @@ class Unit{
     this.phase=Math.random()*6;this.alive=true;this.timer=0;this.home=V();this.homeYaw=0;
     scene.add(this.root);this.makeTag();
   }
-  get atk(){return this.baseAtk*(hasStatus(this,'enrage')?1.3:1);}
+  get atk(){return this.baseAtk*(hasStatus(this,'enrage')?RULES.enrageAtk:1);}
   resetCds(){this.cds={};for(const id of this.abilities){const a=AB[id];this.cds[id]=a.cd?(a.start??Math.ceil(a.cd/2)):0;}}
   makeTag(){
     const t=document.createElement('div');t.className='tag '+this.side+(this.def.boss?' boss':'');
@@ -98,9 +98,9 @@ function flash(u){tween(220,k=>{const v=(1-k)*.9;for(const m of u.mats)m.emissiv
 function knock(t){tween(260,(k,raw)=>{const s=Math.sin(raw*Math.PI);t.body.position.z=-.28*s;t.body.rotation.x=-.3*s;},E.lin);}
 function hit(u,t,mult,o={}){
   if(!t.alive)return 0;
-  let dmg=u.atk*mult*rand(.92,1.08);
+  let dmg=u.atk*mult*rand(1-RULES.dmgVariance,1+RULES.dmgVariance);
   const em=elemMult(u.el,t.el);dmg*=em;
-  const crit=Math.random()<(o.crit??u.crit);if(crit)dmg*=1.6;
+  const crit=Math.random()<(o.crit??u.crit);if(crit)dmg*=RULES.critMult;
   dmg*=1-(t.dr||0);if(o.bonus)dmg*=o.bonus;
   dmg=Math.max(1,Math.round(dmg));
   const sh=t.status.find(s=>s.type==='shield');let absorbed=0;
@@ -174,158 +174,172 @@ async function bigSlam(u,mult,o){
 }
 
 /* ================= habilidades ================= */
+/* Habilidades: aqui fica a ANIMAÇÃO e a LÓGICA de cada golpe. Os números vêm de BAL (045-balance.js)
+   e o texto de AB_TEXT. Nunca escreva multiplicadores direto aqui: use b = BAL[id]. */
+const B=id=>BAL[id];
 const AB={
   /* Brom */
-  escudo:{name:'Golpe de Escudo',icon:'i-shield',cd:0,target:'enemy',desc:'100% de dano em um inimigo.',run:(u,t)=>melee(u,t,()=>hit(u,t,1))},
-  provocar:{name:'Provocar',icon:'i-taunt',cd:4,start:0,target:'self',desc:'Atrai os ataques individuais por 2 turnos e ganha escudo de 25% da vida.',ai:u=>!hasStatus(u,'taunt'),
-    run:async u=>{sfx.roar();await tween(240,k=>{u.armL.rotation.x=-1.7*k;u.root.position.y=Math.sin(k*Math.PI)*.35;});
-      shockwave(u.root.position,'#ff5a4e',4,520);addStatus(u,'taunt',2);addStatus(u,'shield',2,Math.round(u.maxHp*.25));floatText(u,'Provocando!','lab');
+  escudo:{run:(u,t)=>melee(u,t,()=>hit(u,t,B('escudo').dmg))},
+  provocar:{ai:u=>!hasStatus(u,'taunt'),
+    run:async u=>{const b=B('provocar');sfx.roar();await tween(240,k=>{u.armL.rotation.x=-1.7*k;u.root.position.y=Math.sin(k*Math.PI)*.35;});
+      shockwave(u.root.position,'#ff5a4e',4,520);addStatus(u,'taunt',b.turns);addStatus(u,'shield',b.turns,Math.round(u.maxHp*b.shieldMaxHp));floatText(u,'Provocando!','lab');
       await wait(380);await tween(200,k=>{u.armL.rotation.x=-1.7*(1-k);});}},
-  terremoto:{name:'Terremoto',icon:'i-quake',cd:4,target:'enemies',desc:'70% de dano em todos os inimigos e 35% de chance de atordoar cada um.',
-    run:async u=>{
+  terremoto:{
+    run:async u=>{const b=B('terremoto');
       await tween(260,k=>{u.root.position.y=Math.sin(k*Math.PI/2)*1.4;u.armR.rotation.x=-2.9*k;});
       await tween(140,k=>{u.root.position.y=1.4*(1-k);u.armR.rotation.x=-2.9+2.2*k;},E.lin);
       sfx.slam();shake(.55);shockwave(u.root.position,'#d9b27a',11,700);dustBurst(u.root.position);
-      for(const e of foesOf(u)){dustBurst(e.root.position);hit(u,e,.7);if(e.alive&&Math.random()<.35)stun(e);}
+      for(const e of foesOf(u)){dustBurst(e.root.position);hit(u,e,b.dmg);if(e.alive&&Math.random()<b.stun)stun(e);}
       await wait(450);await tween(150,k=>{u.armR.rotation.x=-.7*(1-k);});}},
   /* Lyra */
-  faisca:{name:'Faísca',icon:'i-spark',cd:0,target:'enemy',desc:'100% de dano em um inimigo.',
-    run:async(u,t)=>{await raise(u,-1.7,180);sfx.magic();await projectile(orbPos(u),t.center(),{color:'#ff8a3a',size:.28,arc:.5,ms:360});hit(u,t,1);await lower(u);}},
-  bolafogo:{name:'Bola de Fogo',icon:'i-fire',cd:3,start:1,target:'enemy',desc:'220% de dano e queimadura por 2 turnos.',
-    run:async(u,t)=>{await raise(u,-2.3,260);sfx.fire();await projectile(orbPos(u),t.center(),{color:'#ff6a2a',size:.6,arc:1.2,ms:480,trail:2});
-      hit(u,t,2.2,{heavy:true});if(t.alive){addStatus(t,'burn',2,Math.round(u.atk*.35));floatText(t,'Queimando','lab');}await lower(u);}},
-  meteoros:{name:'Chuva de Meteoros',icon:'i-meteor',cd:5,target:'enemies',desc:'120% de dano em todos os inimigos e queimadura por 2 turnos.',
-    run:async u=>{await raise(u,-2.9,300);sfx.fire();
+  faisca:{
+    run:async(u,t)=>{await raise(u,-1.7,180);sfx.magic();await projectile(orbPos(u),t.center(),{color:'#ff8a3a',size:.28,arc:.5,ms:360});hit(u,t,B('faisca').dmg);await lower(u);}},
+  bolafogo:{
+    run:async(u,t)=>{const b=B('bolafogo');await raise(u,-2.3,260);sfx.fire();await projectile(orbPos(u),t.center(),{color:'#ff6a2a',size:.6,arc:1.2,ms:480,trail:2});
+      hit(u,t,b.dmg,{heavy:true});if(t.alive){addStatus(t,'burn',b.turns,Math.round(u.atk*b.burn));floatText(t,'Queimando','lab');}await lower(u);}},
+  meteoros:{
+    run:async u=>{const b=B('meteoros');await raise(u,-2.9,300);sfx.fire();
       await Promise.all(foesOf(u).map((e,i)=>(async()=>{await wait(i*150);const to=e.center(),from=to.clone().add(V(rand(-2.5,-1),9,rand(-1,1)));
-        await projectile(from,to,{color:'#ff5a1f',size:.65,arc:0,ms:420,trail:3});shake(.25);hit(u,e,1.2);if(e.alive)addStatus(e,'burn',2,Math.round(u.atk*.25));})()));
+        await projectile(from,to,{color:'#ff5a1f',size:.65,arc:0,ms:420,trail:3});shake(.25);hit(u,e,b.dmg);if(e.alive)addStatus(e,'burn',b.turns,Math.round(u.atk*b.burn));})()));
       await lower(u);}},
   /* Alva */
-  luzsagrada:{name:'Luz Sagrada',icon:'i-sun',cd:0,target:'enemy',desc:'100% de dano em um inimigo.',
-    run:async(u,t)=>{await raise(u,-1.7,180);sfx.magic();await projectile(orbPos(u),t.center(),{color:'#ffd75e',size:.3,arc:.6,ms:380});hit(u,t,1);await lower(u);}},
-  prece:{name:'Prece',icon:'i-heart',cd:2,start:0,target:'ally',kind:'heal',desc:'Cura um aliado em 280% do ataque.',
-    run:async(u,t)=>{await raise(u,-2.5,240);sfx.heal();healFx(t);healUnit(t,u.atk*2.8);await wait(320);await lower(u);}},
-  bencao:{name:'Bênção Coletiva',icon:'i-cross',cd:4,target:'allies',kind:'heal',desc:'Cura todos os aliados em 150% do ataque e remove veneno, queimadura e atordoamento.',
-    run:async u=>{await raise(u,-2.9,300);sfx.heal();shockwave(u.root.position,'#ffe08a',9,700);
-      for(const a of friendsOf(u)){healFx(a);healUnit(a,u.atk*1.5);const bad=['burn','poison','stun'],had=a.status.some(s=>bad.includes(s.type));a.status=a.status.filter(s=>!bad.includes(s.type));if(had)floatText(a,'Purificado','lab');a.refresh();}
+  luzsagrada:{
+    run:async(u,t)=>{await raise(u,-1.7,180);sfx.magic();await projectile(orbPos(u),t.center(),{color:'#ffd75e',size:.3,arc:.6,ms:380});hit(u,t,B('luzsagrada').dmg);await lower(u);}},
+  prece:{
+    run:async(u,t)=>{await raise(u,-2.5,240);sfx.heal();healFx(t);healUnit(t,u.atk*B('prece').heal);await wait(320);await lower(u);}},
+  bencao:{
+    run:async u=>{const b=B('bencao');await raise(u,-2.9,300);sfx.heal();shockwave(u.root.position,'#ffe08a',9,700);
+      for(const a of friendsOf(u)){healFx(a);healUnit(a,u.atk*b.heal);const bad=['burn','poison','stun'],had=a.status.some(s=>bad.includes(s.type));a.status=a.status.filter(s=>!bad.includes(s.type));if(had)floatText(a,'Purificado','lab');a.refresh();}
       await wait(380);await lower(u);}},
   /* Vex */
-  corte:{name:'Corte Duplo',icon:'i-dagger',cd:0,target:'enemy',desc:'Dois golpes de 55% em um inimigo.',
-    run:(u,t)=>melee(u,t,async()=>{hit(u,t,.55);await tween(110,k=>{u.armL.rotation.x=-2.2*Math.sin(k*Math.PI);});if(t.alive)hit(u,t,.55);})},
-  veneno:{name:'Lâmina Venenosa',icon:'i-drop',cd:3,start:1,target:'enemy',desc:'140% de dano e veneno por 3 turnos.',aiTarget:u=>foesOf(u).filter(f=>!hasStatus(f,'poison')).sort((a,b)=>b.hp-a.hp)[0],
-    run:(u,t)=>melee(u,t,()=>{hit(u,t,1.4);burst(t.center(),'#8dff6a',14,2.5,.3,.6);if(t.alive){addStatus(t,'poison',3,Math.round(u.atk*.4));floatText(t,'Envenenado','lab');}})},
-  execucao:{name:'Execução',icon:'i-skull',cd:4,start:2,target:'enemy',desc:'250% de dano, com +60% se o alvo estiver abaixo de 30% de vida.',
-    aiTarget:u=>{const f=foesOf(u).sort((a,b)=>ratio(a)-ratio(b))[0];return f&&(ratio(f)<.35||f.def.boss||foesOf(u).length===1)?f:null;},
-    run:(u,t)=>melee(u,t,()=>{const low=ratio(t)<.3;burst(t.center(),'#b47bff',24,4,.4,.5);hit(u,t,2.5,{heavy:true,bonus:low?1.6:1});})},
+  corte:{
+    run:(u,t)=>melee(u,t,async()=>{const b=B('corte');hit(u,t,b.dmg);for(let i=1;i<b.hits;i++){await tween(110,k=>{u.armL.rotation.x=-2.2*Math.sin(k*Math.PI);});if(t.alive)hit(u,t,b.dmg);}})},
+  veneno:{aiTarget:u=>foesOf(u).filter(f=>!hasStatus(f,'poison')).sort((a,b)=>b.hp-a.hp)[0],
+    run:(u,t)=>melee(u,t,()=>{const b=B('veneno');hit(u,t,b.dmg);burst(t.center(),'#8dff6a',14,2.5,.3,.6);if(t.alive){addStatus(t,'poison',b.turns,Math.round(u.atk*b.poison));floatText(t,'Envenenado','lab');}})},
+  execucao:{
+    aiTarget:u=>{const f=foesOf(u).sort((a,b)=>ratio(a)-ratio(b))[0];return f&&(ratio(f)<B('execucao').lowHp+.05||f.def.boss||foesOf(u).length===1)?f:null;},
+    run:(u,t)=>melee(u,t,()=>{const b=B('execucao'),low=ratio(t)<b.lowHp;burst(t.center(),'#b47bff',24,4,.4,.5);hit(u,t,b.dmg,{heavy:true,bonus:low?b.lowBonus:1});})},
   /* Kai */
-  tiro:{name:'Tiro Certeiro',icon:'i-bow',cd:0,target:'enemy',desc:'100% de dano em um inimigo.',
-    run:async(u,t)=>{await raise(u,-1.5,160,'L');sfx.whoosh();await arrow(handPos(u,'L'),t.center());hit(u,t,1);await lower(u,'L');}},
-  perfurante:{name:'Flecha Perfurante',icon:'i-spark',cd:3,start:1,target:'enemy',desc:'210% de dano que atravessa escudos, com +20% de chance de crítico.',
-    run:async(u,t)=>{await raise(u,-1.5,260,'L');sfx.whoosh();await arrow(handPos(u,'L'),t.center(),{arc:.2,ms:220,color:0x45aaff});burst(t.center(),'#45aaff',18,3.5,.35,.45);hit(u,t,2.1,{pierce:true,crit:u.crit+.2,heavy:true});await lower(u,'L');}},
-  chuvaFlechas:{name:'Chuva de Flechas',icon:'i-wave',cd:4,target:'enemies',desc:'85% de dano em todos os inimigos.',
-    run:async u=>{await raise(u,-2.8,240,'L');sfx.whoosh();
-      await Promise.all(foesOf(u).map((e,i)=>wait(i*90).then(()=>{const to=e.center();return arrow(to.clone().add(V(rand(-1.5,-.5),8,rand(-.5,.5))),to,{arc:0,ms:300});}).then(()=>hit(u,e,.85))));
+  tiro:{
+    run:async(u,t)=>{await raise(u,-1.5,160,'L');sfx.whoosh();await arrow(handPos(u,'L'),t.center());hit(u,t,B('tiro').dmg);await lower(u,'L');}},
+  perfurante:{
+    run:async(u,t)=>{const b=B('perfurante');await raise(u,-1.5,260,'L');sfx.whoosh();await arrow(handPos(u,'L'),t.center(),{arc:.2,ms:220,color:0x45aaff});burst(t.center(),'#45aaff',18,3.5,.35,.45);hit(u,t,b.dmg,{pierce:true,crit:u.crit+b.critBonus,heavy:true});await lower(u,'L');}},
+  chuvaFlechas:{
+    run:async u=>{const b=B('chuvaFlechas');await raise(u,-2.8,240,'L');sfx.whoosh();
+      await Promise.all(foesOf(u).map((e,i)=>wait(i*90).then(()=>{const to=e.center();return arrow(to.clone().add(V(rand(-1.5,-.5),8,rand(-.5,.5))),to,{arc:0,ms:300});}).then(()=>hit(u,e,b.dmg))));
       await lower(u,'L');}},
   /* Mira */
-  jatoAgua:{name:'Jato d\'Água',icon:'i-drop',cd:0,target:'enemy',desc:'100% de dano em um inimigo.',
-    run:async(u,t)=>{await raise(u,-1.7,180);sfx.water();await projectile(orbPos(u),t.center(),{color:'#45aaff',size:.3,arc:.5,ms:360});hit(u,t,1);await lower(u);}},
-  ondaCura:{name:'Onda Curativa',icon:'i-wave',cd:3,start:1,target:'allies',kind:'heal',desc:'Cura todos os aliados em 110% do ataque.',
-    run:async u=>{await raise(u,-2.7,260);sfx.water();sfx.heal();shockwave(u.root.position,'#45aaff',9,700);for(const a of friendsOf(u)){healFx(a);healUnit(a,u.atk*1.1);}await wait(360);await lower(u);}},
-  bolha:{name:'Bolha Protetora',icon:'i-bubble',cd:4,start:0,target:'allies',kind:'shield',desc:'Dá a todos os aliados um escudo de 180% do ataque por 2 turnos.',
-    run:async u=>{await raise(u,-2.7,240);sfx.magic();for(const a of friendsOf(u)){shockwave(a.root.position,'#7cc7ff',a.radius*2.4,500);addStatus(a,'shield',2,Math.round(u.atk*1.8));}floatText(u,'Escudo para todos','shieldt');await wait(360);await lower(u);}},
+  jatoAgua:{
+    run:async(u,t)=>{await raise(u,-1.7,180);sfx.water();await projectile(orbPos(u),t.center(),{color:'#45aaff',size:.3,arc:.5,ms:360});hit(u,t,B('jatoAgua').dmg);await lower(u);}},
+  ondaCura:{
+    run:async u=>{const b=B('ondaCura');await raise(u,-2.7,260);sfx.water();sfx.heal();shockwave(u.root.position,'#45aaff',9,700);for(const a of friendsOf(u)){healFx(a);healUnit(a,u.atk*b.heal);}await wait(360);await lower(u);}},
+  bolha:{
+    run:async u=>{const b=B('bolha');await raise(u,-2.7,240);sfx.magic();for(const a of friendsOf(u)){shockwave(a.root.position,'#7cc7ff',a.radius*2.4,500);addStatus(a,'shield',b.turns,Math.round(u.atk*b.shield));}floatText(u,'Escudo para todos','shieldt');await wait(360);await lower(u);}},
   /* Rook */
-  machadada:{name:'Machadada',icon:'i-axe',cd:0,target:'enemy',desc:'100% de dano em um inimigo.',run:(u,t)=>melee(u,t,()=>hit(u,t,1))},
-  sede:{name:'Sede de Batalha',icon:'i-rage',cd:4,start:1,target:'self',desc:'Ganha +30% de ataque por 2 turnos e recupera 15% da vida.',ai:u=>!hasStatus(u,'enrage'),
-    run:async u=>{sfx.roar();await tween(300,k=>{u.armL.rotation.x=-2.6*k;u.armR.rotation.x=-2.6*k;u.root.position.y=Math.sin(k*Math.PI)*.5;});
-      burst(u.center(),'#ff4f5e',26,4,.45,.6);addStatus(u,'enrage',2);healUnit(u,u.maxHp*.15);floatText(u,'ATAQUE +30%','lab');
+  machadada:{run:(u,t)=>melee(u,t,()=>hit(u,t,B('machadada').dmg))},
+  sede:{ai:u=>!hasStatus(u,'enrage'),
+    run:async u=>{const b=B('sede');sfx.roar();await tween(300,k=>{u.armL.rotation.x=-2.6*k;u.armR.rotation.x=-2.6*k;u.root.position.y=Math.sin(k*Math.PI)*.5;});
+      burst(u.center(),'#ff4f5e',26,4,.45,.6);addStatus(u,'enrage',b.turns);healUnit(u,u.maxHp*b.healMaxHp);floatText(u,`ATAQUE +${pct(RULES.enrageAtk-1)}`,'lab');
       await wait(300);await tween(200,k=>{u.armL.rotation.x=-2.6*(1-k);u.armR.rotation.x=-2.6*(1-k);});}},
-  redemoinho:{name:'Redemoinho',icon:'i-rage',cd:4,target:'enemies',desc:'90% de dano em todos os inimigos e queimadura por 2 turnos.',
-    run:async u=>{const to=sideCenter(u.side==='hero'?'enemy':'hero').lerp(u.root.position,.35);const from=await leapTo(u,to,1.2,340);
+  redemoinho:{
+    run:async u=>{const b=B('redemoinho');const to=sideCenter(u.side==='hero'?'enemy':'hero').lerp(u.root.position,.35);const from=await leapTo(u,to,1.2,340);
       sfx.whoosh();const y0=u.root.rotation.y;await tween(520,k=>{u.root.rotation.y=y0+k*Math.PI*4;u.armR.rotation.z=1.4*Math.sin(k*Math.PI);u.armL.rotation.z=-1.4*Math.sin(k*Math.PI);},E.inOut);
-      shockwave(to,'#ff6a3d',8,500);for(const e of foesOf(u)){hit(u,e,.9);if(e.alive)addStatus(e,'burn',2,Math.round(u.atk*.2));}
+      shockwave(to,'#ff6a3d',8,500);for(const e of foesOf(u)){hit(u,e,b.dmg);if(e.alive)addStatus(e,'burn',b.turns,Math.round(u.atk*b.burn));}
       await wait(250);u.armR.rotation.z=.15;u.armL.rotation.z=-.15;await leapTo(u,from,1,340);u.root.position.copy(u.home);}},
   /* Nyx */
-  toqueSombrio:{name:'Toque Sombrio',icon:'i-moon',cd:0,target:'enemy',desc:'100% de dano em um inimigo.',
-    run:async(u,t)=>{await raise(u,-1.7,180);sfx.dark();await projectile(orbPos(u),t.center(),{color:'#a35bff',size:.3,arc:.5,ms:380});hit(u,t,1);await lower(u);}},
-  drenar:{name:'Drenar Vida',icon:'i-drain',cd:3,start:1,target:'enemy',desc:'170% de dano e recupera 60% do dano causado.',
-    run:async(u,t)=>{await raise(u,-2.2,220);sfx.dark();await projectile(orbPos(u),t.center(),{color:'#5ef0a0',size:.4,arc:.3,ms:340,trail:2});
-      const d=hit(u,t,1.7,{heavy:true});if(d>0){await projectile(t.center(),u.center(),{color:'#9effc8',size:.3,arc:.6,ms:360});healUnit(u,d*.6);}await lower(u);}},
-  maldicao:{name:'Maldição',icon:'i-skull',cd:4,target:'enemies',desc:'45% de dano em todos os inimigos e veneno por 3 turnos.',
-    run:async u=>{await raise(u,-2.8,280);sfx.dark();
-      await Promise.all(foesOf(u).map((e,i)=>wait(i*80).then(()=>projectile(orbPos(u),e.center(),{color:'#5ef0a0',size:.3,arc:1.2,ms:420})).then(()=>{hit(u,e,.45);if(e.alive)addStatus(e,'poison',3,Math.round(u.atk*.3));})));
+  toqueSombrio:{
+    run:async(u,t)=>{await raise(u,-1.7,180);sfx.dark();await projectile(orbPos(u),t.center(),{color:'#a35bff',size:.3,arc:.5,ms:380});hit(u,t,B('toqueSombrio').dmg);await lower(u);}},
+  drenar:{
+    run:async(u,t)=>{const b=B('drenar');await raise(u,-2.2,220);sfx.dark();await projectile(orbPos(u),t.center(),{color:'#5ef0a0',size:.4,arc:.3,ms:340,trail:2});
+      const d=hit(u,t,b.dmg,{heavy:true});if(d>0){await projectile(t.center(),u.center(),{color:'#9effc8',size:.3,arc:.6,ms:360});healUnit(u,d*b.lifesteal);}await lower(u);}},
+  maldicao:{
+    run:async u=>{const b=B('maldicao');await raise(u,-2.8,280);sfx.dark();
+      await Promise.all(foesOf(u).map((e,i)=>wait(i*80).then(()=>projectile(orbPos(u),e.center(),{color:'#5ef0a0',size:.3,arc:1.2,ms:420})).then(()=>{hit(u,e,b.dmg);if(e.alive)addStatus(e,'poison',b.turns,Math.round(u.atk*b.poison));})));
       await lower(u);}},
   /* ---- 4º poderes (liberados na evolução 2) ---- */
-  fortaleza:{name:'Fortaleza',icon:'i-shield',cd:5,start:1,target:'allies',kind:'shield',ult:true,desc:'Dá a todos os aliados um escudo de 15% da vida máxima do Brom por 2 turnos e provoca os inimigos.',
-    run:async u=>{sfx.roar();await tween(320,k=>{u.armL.rotation.x=-2.4*k;u.root.position.y=Math.sin(k*Math.PI)*.6;});sfx.slam();shake(.3);
-      shockwave(u.root.position,'#9fe4a8',9,700);for(const a of friendsOf(u)){shockwave(a.root.position,'#7cc7ff',a.radius*2.4,500);addStatus(a,'shield',2,Math.round(u.maxHp*.15));}
-      addStatus(u,'taunt',2);floatText(u,'Fortaleza!','lab');await wait(380);await tween(200,k=>{u.armL.rotation.x=-2.4*(1-k);});}},
-  explosaoSolar:{name:'Explosão Solar',icon:'i-sun',cd:5,start:1,target:'enemy',ult:true,desc:'320% de dano em um inimigo e queimadura forte por 3 turnos.',
-    run:async(u,t)=>{await raise(u,-2.9,320);sfx.fire();const from=orbPos(u).add(V(0,1.2,0));
+  fortaleza:{
+    run:async u=>{const b=B('fortaleza');sfx.roar();await tween(320,k=>{u.armL.rotation.x=-2.4*k;u.root.position.y=Math.sin(k*Math.PI)*.6;});sfx.slam();shake(.3);
+      shockwave(u.root.position,'#9fe4a8',9,700);for(const a of friendsOf(u)){shockwave(a.root.position,'#7cc7ff',a.radius*2.4,500);addStatus(a,'shield',b.turns,Math.round(u.maxHp*b.shieldMaxHp));}
+      addStatus(u,'taunt',b.turns);floatText(u,'Fortaleza!','lab');await wait(380);await tween(200,k=>{u.armL.rotation.x=-2.4*(1-k);});}},
+  explosaoSolar:{
+    run:async(u,t)=>{const b=B('explosaoSolar');await raise(u,-2.9,320);sfx.fire();const from=orbPos(u).add(V(0,1.2,0));
       await projectile(from,t.center(),{color:'#ffb347',size:.95,arc:2,ms:620,trail:4});shake(.45);shockwave(t.root.position,'#ff7a2a',5,600);
-      hit(u,t,3.2,{heavy:true});if(t.alive){addStatus(t,'burn',3,Math.round(u.atk*.5));floatText(t,'Queimando','lab');}await lower(u);}},
-  ressurreicao:{name:'Ressurreição',icon:'i-heart',cd:6,start:2,target:'fallen',ult:true,desc:'Traz de volta um aliado caído com 45% da vida.',
-    run:async(u,t)=>{await raise(u,-2.9,320);sfx.heal();await revive(t,.45);await wait(250);await lower(u);}},
-  dancaSombras:{name:'Dança das Sombras',icon:'i-dagger',cd:4,start:1,target:'enemies',ult:true,desc:'Quatro golpes de 55% em inimigos aleatórios, com +15% de chance de crítico.',
-    run:async u=>{const from=u.root.position.clone();sfx.whoosh();
-      for(let i=0;i<4;i++){const foes=foesOf(u);if(!foes.length)break;const t=pick(foes);
+      hit(u,t,b.dmg,{heavy:true});if(t.alive){addStatus(t,'burn',b.turns,Math.round(u.atk*b.burn));floatText(t,'Queimando','lab');}await lower(u);}},
+  ressurreicao:{
+    run:async(u,t)=>{await raise(u,-2.9,320);sfx.heal();await revive(t,B('ressurreicao').hpMax);await wait(250);await lower(u);}},
+  dancaSombras:{
+    run:async u=>{const b=B('dancaSombras'),from=u.root.position.clone();sfx.whoosh();
+      for(let i=0;i<b.hits;i++){const foes=foesOf(u);if(!foes.length)break;const t=pick(foes);
         const to=t.root.position.clone().add(V(rand(-.6,.6),0,rand(-.6,.6)));
         burst(u.center(),'#b47bff',10,2,.3,.3);await tween(120,k=>{u.root.position.lerpVectors(i?u.root.position:from,to,k);},E.lin);
-        u.root.position.copy(to);await faceTo(u,t.root.position,40);await tween(90,k=>{u.armR.rotation.x=-2.6*Math.sin(k*Math.PI);});hit(u,t,.55,{crit:u.crit+.15});}
+        u.root.position.copy(to);await faceTo(u,t.root.position,40);await tween(90,k=>{u.armR.rotation.x=-2.6*Math.sin(k*Math.PI);});hit(u,t,b.dmg,{crit:u.crit+b.critBonus});}
       await tween(220,k=>{u.root.position.lerp(u.home,k);});u.root.position.copy(u.home);}},
-  tiroAtordoante:{name:'Tiro Atordoante',icon:'i-bolt',cd:5,start:1,target:'enemy',ult:true,desc:'160% de dano e atordoa o alvo por 1 turno.',
+  tiroAtordoante:{
     run:async(u,t)=>{await raise(u,-1.6,300,'L');sfx.whoosh();await arrow(handPos(u,'L'),t.center(),{arc:.15,ms:200,color:0xffe066});
-      burst(t.center(),'#ffe066',22,4,.4,.5);hit(u,t,1.6,{heavy:true});if(t.alive)stun(t);await lower(u,'L');}},
-  mareAlta:{name:'Maré Alta',icon:'i-wave',cd:5,start:1,target:'enemies',ult:true,desc:'80% de dano em todos os inimigos e cura todos os aliados em 70% do ataque.',
-    run:async u=>{await raise(u,-2.9,300);sfx.water();shake(.3);
-      for(const e of foesOf(u)){shockwave(e.root.position,'#45aaff',3,600);hit(u,e,.8);}
-      await wait(250);sfx.heal();for(const a of friendsOf(u)){healFx(a);healUnit(a,u.atk*.7);}await wait(300);await lower(u);}},
-  furiaSangue:{name:'Fúria Sanguinária',icon:'i-rage',cd:5,start:1,target:'enemy',ult:true,desc:'260% de dano em um inimigo e recupera 50% do dano causado.',
-    run:(u,t)=>melee(u,t,()=>{burst(t.center(),'#ff4f5e',26,4.5,.45,.5);const d=hit(u,t,2.6,{heavy:true});if(d>0)healUnit(u,d*.5);})},
-  colheita:{name:'Colheita de Almas',icon:'i-skull',cd:5,start:1,target:'enemies',ult:true,desc:'110% de dano em todos os inimigos; Nyx recupera 35% do dano total.',
-    run:async u=>{await raise(u,-2.9,300);sfx.dark();let total=0;
-      await Promise.all(foesOf(u).map((e,i)=>wait(i*80).then(()=>{shockwave(e.root.position,'#5ef0a0',2.6,500);total+=hit(u,e,1.1);})));
-      if(total>0){await projectile(V(0,2,0),u.center(),{color:'#9effc8',size:.45,arc:.4,ms:360});healUnit(u,total*.35);}await lower(u);}},
+      burst(t.center(),'#ffe066',22,4,.4,.5);hit(u,t,B('tiroAtordoante').dmg,{heavy:true});if(t.alive)stun(t);await lower(u,'L');}},
+  mareAlta:{
+    run:async u=>{const b=B('mareAlta');await raise(u,-2.9,300);sfx.water();shake(.3);
+      for(const e of foesOf(u)){shockwave(e.root.position,'#45aaff',3,600);hit(u,e,b.dmg);}
+      await wait(250);sfx.heal();for(const a of friendsOf(u)){healFx(a);healUnit(a,u.atk*b.heal);}await wait(300);await lower(u);}},
+  furiaSangue:{
+    run:(u,t)=>melee(u,t,()=>{const b=B('furiaSangue');burst(t.center(),'#ff4f5e',26,4.5,.45,.5);const d=hit(u,t,b.dmg,{heavy:true});if(d>0)healUnit(u,d*b.lifesteal);})},
+  colheita:{
+    run:async u=>{const b=B('colheita');await raise(u,-2.9,300);sfx.dark();let total=0;
+      await Promise.all(foesOf(u).map((e,i)=>wait(i*80).then(()=>{shockwave(e.root.position,'#5ef0a0',2.6,500);total+=hit(u,e,b.dmg);})));
+      if(total>0){await projectile(V(0,2,0),u.center(),{color:'#9effc8',size:.45,arc:.4,ms:360});healUnit(u,total*b.lifesteal);}await lower(u);}},
   /* inimigos comuns */
-  lanca:{name:'Estocada',cd:0,run:(u,t)=>melee(u,t,()=>hit(u,t,1))},
-  flecha:{name:'Flecha',cd:0,run:async(u,t)=>{await raise(u,-1.5,160,'L');sfx.whoosh();await arrow(handPos(u,'L'),t.center());hit(u,t,1);await lower(u,'L');}},
-  espada:{name:'Talho',cd:0,run:(u,t)=>melee(u,t,()=>hit(u,t,1))},
-  raio:{name:'Raio Sombrio',cd:0,run:async(u,t)=>{await raise(u,-1.8,200);sfx.dark();await projectile(orbPos(u),t.center(),{color:'#b47bff',size:.32,arc:.4,ms:380});hit(u,t,1.1);await lower(u);}},
-  rajada:{name:'Rajada Sombria',cd:3,start:1,callout:true,run:async u=>{await raise(u,-2.6,260);sfx.dark();
-    await Promise.all(foesOf(u).map((h,i)=>wait(i*90).then(()=>projectile(orbPos(u),h.center(),{color:'#a35bff',size:.3,arc:1,ms:420})).then(()=>hit(u,h,.55))));await lower(u);}},
-  jato:{name:'Jato de Lodo',cd:0,run:async(u,t)=>{await raise(u,-1.8,200);sfx.water();await projectile(orbPos(u),t.center(),{color:'#48c6ff',size:.32,arc:.6,ms:380});hit(u,t,1);await lower(u);}},
-  curaLodo:{name:'Lodo Restaurador',cd:3,start:1,callout:true,run:async(u,t)=>{await raise(u,-2.5,240);sfx.heal();healFx(t);healUnit(t,t.maxHp*.25);await wait(300);await lower(u);}},
-  brasa:{name:'Brasa',cd:0,run:async(u,t)=>{await raise(u,-1.8,180);sfx.fire();await projectile(orbPos(u),t.center(),{color:'#ff7a2a',size:.32,arc:.7,ms:380});hit(u,t,1);if(t.alive&&Math.random()<.3)addStatus(t,'burn',2,Math.round(u.atk*.25));await lower(u);}},
-  rajadaFogo:{name:'Rajada de Fogo',cd:3,start:1,callout:true,run:async u=>{await raise(u,-2.6,260);sfx.fire();
-    await Promise.all(foesOf(u).map((h,i)=>wait(i*90).then(()=>projectile(orbPos(u),h.center(),{color:'#ff5a1a',size:.32,arc:1,ms:420})).then(()=>{hit(u,h,.5);if(h.alive)addStatus(h,'burn',2,Math.round(u.atk*.2));})));await lower(u);}},
-  pancada:{name:'Pancada',cd:0,run:(u,t)=>melee(u,t,()=>{hit(u,t,1.2,{heavy:true});dustBurst(t.root.position);if(t.alive&&Math.random()<.25)stun(t);})},
+  lanca:{run:(u,t)=>melee(u,t,()=>hit(u,t,B('lanca').dmg))},
+  flecha:{run:async(u,t)=>{await raise(u,-1.5,160,'L');sfx.whoosh();await arrow(handPos(u,'L'),t.center());hit(u,t,B('flecha').dmg);await lower(u,'L');}},
+  espada:{run:(u,t)=>melee(u,t,()=>hit(u,t,B('espada').dmg))},
+  raio:{run:async(u,t)=>{await raise(u,-1.8,200);sfx.dark();await projectile(orbPos(u),t.center(),{color:'#b47bff',size:.32,arc:.4,ms:380});hit(u,t,B('raio').dmg);await lower(u);}},
+  rajada:{run:async u=>{const b=B('rajada');await raise(u,-2.6,260);sfx.dark();
+    await Promise.all(foesOf(u).map((h,i)=>wait(i*90).then(()=>projectile(orbPos(u),h.center(),{color:'#a35bff',size:.3,arc:1,ms:420})).then(()=>hit(u,h,b.dmg))));await lower(u);}},
+  jato:{run:async(u,t)=>{await raise(u,-1.8,200);sfx.water();await projectile(orbPos(u),t.center(),{color:'#48c6ff',size:.32,arc:.6,ms:380});hit(u,t,B('jato').dmg);await lower(u);}},
+  curaLodo:{run:async(u,t)=>{await raise(u,-2.5,240);sfx.heal();healFx(t);healUnit(t,t.maxHp*B('curaLodo').healMaxHp);await wait(300);await lower(u);}},
+  brasa:{run:async(u,t)=>{const b=B('brasa');await raise(u,-1.8,180);sfx.fire();await projectile(orbPos(u),t.center(),{color:'#ff7a2a',size:.32,arc:.7,ms:380});hit(u,t,b.dmg);if(t.alive&&Math.random()<b.burnChance)addStatus(t,'burn',b.turns,Math.round(u.atk*b.burn));await lower(u);}},
+  rajadaFogo:{run:async u=>{const b=B('rajadaFogo');await raise(u,-2.6,260);sfx.fire();
+    await Promise.all(foesOf(u).map((h,i)=>wait(i*90).then(()=>projectile(orbPos(u),h.center(),{color:'#ff5a1a',size:.32,arc:1,ms:420})).then(()=>{hit(u,h,b.dmg);if(h.alive)addStatus(h,'burn',b.turns,Math.round(u.atk*b.burn));})));await lower(u);}},
+  pancada:{run:(u,t)=>melee(u,t,()=>{const b=B('pancada');hit(u,t,b.dmg,{heavy:true});dustBurst(t.root.position);if(t.alive&&Math.random()<b.stun)stun(t);})},
   /* chefes (o nome vem do kit de cada chefe) */
-  bBasic:{name:'Ataque',cd:0,run:async(u,t)=>{const bk=u.def.bk;
-    if(bk.melee)return melee(u,t,()=>{hit(u,t,1.3,{heavy:true});shake(.35);dustBurst(t.root.position);});
-    await raise(u,-1.9,220);sfx.dark();await projectile(orbPos(u),t.center(),{color:bk.boltColor,size:.45,arc:.4,ms:400,trail:2});hit(u,t,1.35,{heavy:true});await lower(u);}},
-  bAoe:{name:'Ataque em área',cd:3,start:2,callout:true,run:async u=>{const bk=u.def.bk;
+  bBasic:{run:async(u,t)=>{const bk=u.def.bk,b=B('bBasic');
+    if(bk.melee)return melee(u,t,()=>{hit(u,t,b.dmg,{heavy:true});shake(.35);dustBurst(t.root.position);});
+    await raise(u,-1.9,220);sfx.dark();await projectile(orbPos(u),t.center(),{color:bk.boltColor,size:.45,arc:.4,ms:400,trail:2});hit(u,t,b.dmgRanged,{heavy:true});await lower(u);}},
+  bAoe:{run:async u=>{const bk=u.def.bk,b=B('bAoe');
     await tween(300,k=>{u.armR.rotation.x=-2.9*k;u.root.position.y=Math.sin(k*Math.PI/2)*.8;});
     await tween(140,k=>{u.armR.rotation.x=-2.9+2.4*k;u.root.position.y=.8*(1-k);},E.lin);
     sfx.slam();shake(.45);shockwave(u.root.position,bk.aoeColor,14,800);
     for(let i=0;i<30;i++){const a=rand(0,Math.PI*2);spawnPart(V(u.root.position.x+Math.cos(a)*2,.3,u.root.position.z+Math.sin(a)*2),{color:bk.aoeColor,size:rand(.3,.6),life:.8,v:V(Math.cos(a)*6,rand(1,3),Math.sin(a)*6),grav:-6});}
     await wait(260);
-    for(const h of foesOf(u)){hit(u,h,.75);if(h.alive&&bk.aoeStatus)addStatus(h,bk.aoeStatus,2,Math.round(u.atk*.2));}
+    for(const h of foesOf(u)){hit(u,h,b.dmg);if(h.alive&&bk.aoeStatus)addStatus(h,bk.aoeStatus,b.turns,Math.round(u.atk*b.status));}
     await wait(300);await tween(150,k=>{u.armR.rotation.x=-.5*(1-k);});}},
-  bPrep:{name:'Preparar',cd:0,callout:true,run:async u=>{const bk=u.def.bk;
+  bPrep:{run:async u=>{const bk=u.def.bk;
     sfx.roar();await tween(500,k=>{u.armR.rotation.x=-3*k;u.body.rotation.x=-.25*k;});
     addStatus(u,'charge',2);
     banner(`${bk.big} no próximo turno!`,bk.quote,'Proteja-se: escudos e cura agora.',true,2200);
     await wait(500);}},
-  bBig:{name:'Golpe',cd:0,callout:true,run:async u=>{removeStatus(u,'charge');await bigSlam(u,1.9,{color:u.def.bk.bigColor});}},
-  bRage:{name:'Fúria',cd:0,callout:true,run:async u=>{const bk=u.def.bk;
+  bBig:{run:async u=>{removeStatus(u,'charge');await bigSlam(u,B('bBig').dmg,{color:u.def.bk.bigColor});}},
+  bRage:{run:async u=>{const bk=u.def.bk,b=B('bRage');
     u.enraged=true;sfx.roar();shake(.5);
     await tween(400,k=>{u.root.scale.setScalar(u.scale*(1+.12*Math.sin(k*Math.PI)));});
-    burst(u.center(),'#ff4f5e',40,5,.6,.8);addStatus(u,'enrage',99);floatText(u,'ATAQUE +30%','lab');
+    burst(u.center(),'#ff4f5e',40,5,.6,.8);addStatus(u,'enrage',99);floatText(u,`ATAQUE +${pct(RULES.enrageAtk-1)}`,'lab');
     banner(`${u.def.short} enfurecido!`,bk.rage,'Reforços chegaram.',true,1800);
     await wait(400);
     const adds=[];
-    for(let i=0;i<2;i++){const e=new Unit(bk.adds,'enemy',Math.max(1,u.lvl-1));e.slot={type:'add',i};G.enemies.push(e);placeUnit(e);e.timer=G.clock+1000/e.spd*.6;adds.push(e);}
+    for(let i=0;i<b.adds;i++){const e=new Unit(bk.adds,'enemy',Math.max(1,u.lvl+b.addLvl));e.slot={type:'add',i:i%2};G.enemies.push(e);placeUnit(e);e.timer=G.clock+1000/e.spd*.6;adds.push(e);}
     await Promise.all(adds.map((e,i)=>wait(i*160).then(()=>dropIn(e))));
     buildOrder();}}
 };
+/* liga cada habilidade aos dados (nome, ícone, alvo, números e texto em data/abilities.json).
+   Os valores são lidos na hora, então o simulador pode ajustá-los sem recarregar. */
+for(const [id,a] of Object.entries(AB)){
+  const d=DATA.abilities.abilities[id];
+  if(!d)throw new Error(`data/abilities.json sem a habilidade "${id}"`);
+  Object.assign(a,{name:d.name,icon:d.icon,target:d.target,kind:d.kind,ult:!!d.ult,callout:!!d.callout});
+  Object.defineProperty(a,'cd',{get:()=>BAL[id].cd||0,enumerable:true});
+  Object.defineProperty(a,'start',{get:()=>BAL[id].start,enumerable:true});
+  Object.defineProperty(a,'desc',{get:()=>abilityText(id),enumerable:true});
+}
+for(const id of Object.keys(DATA.abilities.abilities))if(!AB[id])throw new Error(`habilidade "${id}" está nos dados mas não tem lógica em AB`);
 function abName(u,id){const bk=u.def.bk;if(bk){const m={bBasic:bk.basic,bAoe:bk.aoe,bPrep:bk.prep,bBig:bk.big,bRage:bk.rage};if(m[id])return m[id];}return AB[id].name;}
 
 /* ================= IA ================= */
@@ -363,9 +377,9 @@ function enemyAI(u){
   if(u.def.boss){
     u.bt=(u.bt||0)+1;
     if(hasStatus(u,'charge'))return{ab:'bBig'};
-    if(!u.enraged&&ratio(u)<.5)return{ab:'bRage'};
-    if(u.bt%4===3)return{ab:'bPrep'};
-    if(r('bAoe')&&Math.random()<.6)return{ab:'bAoe'};
+    if(!u.enraged&&ratio(u)<BAL.bRage.at)return{ab:'bRage'};
+    if(u.bt%BAL.bPrep.every===BAL.bPrep.every-1)return{ab:'bPrep'};
+    if(r('bAoe')&&Math.random()<BAL.bAoe.useChance)return{ab:'bAoe'};
     return{ab:'bBasic',target:bestFoe(u,'random')};
   }
   if(ab.includes('curaLodo')&&r('curaLodo')){const h=friendsOf(u).filter(f=>ratio(f)<.6).sort((a,b)=>ratio(a)-ratio(b))[0];if(h)return{ab:'curaLodo',target:h};}

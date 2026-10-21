@@ -8,6 +8,7 @@ Documentação completa: `docs/jogo.md` (regras e conteúdo), `docs/arquitetura.
 Versão de **navegador**, com servidor próprio na VPS do Leonardo. Android/Play Store fica para depois; o projeto Capacitor já existe em `android/` (falta CORS na API e `API_URL` no build do app).
 
 ## Como o código está organizado
+- `data/*.json` é a **fonte única dos números** (heróis, inimigos, habilidades, regras, progressão). Balanceamento se muda aqui, nunca no código.
 - `src/js/*.js` são concatenados **em ordem alfabética** dentro de uma única IIFE por `tools/build.mjs` (todas as funções compartilham escopo). Não use `import`/`export`.
   - `01-core` utilidades, tweens, som sintetizado, elementos
   - `02-scene` three.js r128 (global `THREE`), temas, cenário, partículas

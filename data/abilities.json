@@ -1,0 +1,511 @@
+{
+  "_doc": "Habilidades. values = números de balanceamento (dmg/heal/shield = fração do ATAQUE; *MaxHp = fração da vida máxima; burn/poison = dano por turno em fração do ataque; cd = recarga; start = recarga inicial). text = descrição gerada: {chave|pct} → 125%, {chave|bonus} → +25% (valor-1), {rules.x} lê data/rules.json.",
+  "abilities": {
+    "escudo": {
+      "name": "Golpe de Escudo",
+      "icon": "i-shield",
+      "target": "enemy",
+      "values": {
+        "cd": 0,
+        "dmg": 1
+      },
+      "text": "{dmg|pct} de dano em um inimigo."
+    },
+    "provocar": {
+      "name": "Provocar",
+      "icon": "i-taunt",
+      "target": "self",
+      "values": {
+        "cd": 4,
+        "start": 0,
+        "turns": 2,
+        "shieldMaxHp": 0.25
+      },
+      "text": "Atrai os ataques individuais por {turns} turnos e ganha escudo de {shieldMaxHp|pct} da vida."
+    },
+    "terremoto": {
+      "name": "Terremoto",
+      "icon": "i-quake",
+      "target": "enemies",
+      "values": {
+        "cd": 4,
+        "dmg": 0.7,
+        "stun": 0.35
+      },
+      "text": "{dmg|pct} de dano em todos os inimigos e {stun|pct} de chance de atordoar cada um."
+    },
+    "fortaleza": {
+      "name": "Fortaleza",
+      "icon": "i-shield",
+      "target": "allies",
+      "kind": "shield",
+      "ult": true,
+      "values": {
+        "cd": 5,
+        "start": 1,
+        "turns": 2,
+        "shieldMaxHp": 0.15
+      },
+      "text": "Dá a todos os aliados um escudo de {shieldMaxHp|pct} da vida máxima do Brom por {turns} turnos e provoca os inimigos."
+    },
+    "faisca": {
+      "name": "Faísca",
+      "icon": "i-spark",
+      "target": "enemy",
+      "values": {
+        "cd": 0,
+        "dmg": 1
+      },
+      "text": "{dmg|pct} de dano em um inimigo."
+    },
+    "bolafogo": {
+      "name": "Bola de Fogo",
+      "icon": "i-fire",
+      "target": "enemy",
+      "values": {
+        "cd": 3,
+        "start": 1,
+        "dmg": 2.2,
+        "burn": 0.35,
+        "turns": 2
+      },
+      "text": "{dmg|pct} de dano e queimadura por {turns} turnos."
+    },
+    "meteoros": {
+      "name": "Chuva de Meteoros",
+      "icon": "i-meteor",
+      "target": "enemies",
+      "values": {
+        "cd": 5,
+        "dmg": 1.2,
+        "burn": 0.25,
+        "turns": 2
+      },
+      "text": "{dmg|pct} de dano em todos os inimigos e queimadura por {turns} turnos."
+    },
+    "explosaoSolar": {
+      "name": "Explosão Solar",
+      "icon": "i-sun",
+      "target": "enemy",
+      "ult": true,
+      "values": {
+        "cd": 5,
+        "start": 1,
+        "dmg": 3.2,
+        "burn": 0.5,
+        "turns": 3
+      },
+      "text": "{dmg|pct} de dano em um inimigo e queimadura forte por {turns} turnos."
+    },
+    "luzsagrada": {
+      "name": "Luz Sagrada",
+      "icon": "i-sun",
+      "target": "enemy",
+      "values": {
+        "cd": 0,
+        "dmg": 1
+      },
+      "text": "{dmg|pct} de dano em um inimigo."
+    },
+    "prece": {
+      "name": "Prece",
+      "icon": "i-heart",
+      "target": "ally",
+      "kind": "heal",
+      "values": {
+        "cd": 2,
+        "start": 0,
+        "heal": 2.8
+      },
+      "text": "Cura um aliado em {heal|pct} do ataque."
+    },
+    "bencao": {
+      "name": "Bênção Coletiva",
+      "icon": "i-cross",
+      "target": "allies",
+      "kind": "heal",
+      "values": {
+        "cd": 4,
+        "heal": 1.5
+      },
+      "text": "Cura todos os aliados em {heal|pct} do ataque e remove veneno, queimadura e atordoamento."
+    },
+    "ressurreicao": {
+      "name": "Ressurreição",
+      "icon": "i-heart",
+      "target": "fallen",
+      "ult": true,
+      "values": {
+        "cd": 6,
+        "start": 2,
+        "hpMax": 0.45
+      },
+      "text": "Traz de volta um aliado caído com {hpMax|pct} da vida."
+    },
+    "corte": {
+      "name": "Corte Duplo",
+      "icon": "i-dagger",
+      "target": "enemy",
+      "values": {
+        "cd": 0,
+        "dmg": 0.55,
+        "hits": 2
+      },
+      "text": "{hits} golpes de {dmg|pct} em um inimigo."
+    },
+    "veneno": {
+      "name": "Lâmina Venenosa",
+      "icon": "i-drop",
+      "target": "enemy",
+      "values": {
+        "cd": 3,
+        "start": 1,
+        "dmg": 1.4,
+        "poison": 0.4,
+        "turns": 3
+      },
+      "text": "{dmg|pct} de dano e veneno por {turns} turnos."
+    },
+    "execucao": {
+      "name": "Execução",
+      "icon": "i-skull",
+      "target": "enemy",
+      "values": {
+        "cd": 4,
+        "start": 2,
+        "dmg": 2.5,
+        "lowHp": 0.3,
+        "lowBonus": 1.6
+      },
+      "text": "{dmg|pct} de dano, com {lowBonus|bonus} se o alvo estiver abaixo de {lowHp|pct} de vida."
+    },
+    "dancaSombras": {
+      "name": "Dança das Sombras",
+      "icon": "i-dagger",
+      "target": "enemies",
+      "ult": true,
+      "values": {
+        "cd": 4,
+        "start": 1,
+        "dmg": 0.55,
+        "hits": 4,
+        "critBonus": 0.15
+      },
+      "text": "{hits} golpes de {dmg|pct} em inimigos aleatórios, com +{critBonus|pct} de chance de crítico."
+    },
+    "tiro": {
+      "name": "Tiro Certeiro",
+      "icon": "i-bow",
+      "target": "enemy",
+      "values": {
+        "cd": 0,
+        "dmg": 1
+      },
+      "text": "{dmg|pct} de dano em um inimigo."
+    },
+    "perfurante": {
+      "name": "Flecha Perfurante",
+      "icon": "i-spark",
+      "target": "enemy",
+      "values": {
+        "cd": 3,
+        "start": 1,
+        "dmg": 2.1,
+        "critBonus": 0.2
+      },
+      "text": "{dmg|pct} de dano que atravessa escudos, com +{critBonus|pct} de chance de crítico."
+    },
+    "chuvaFlechas": {
+      "name": "Chuva de Flechas",
+      "icon": "i-wave",
+      "target": "enemies",
+      "values": {
+        "cd": 4,
+        "dmg": 0.85
+      },
+      "text": "{dmg|pct} de dano em todos os inimigos."
+    },
+    "tiroAtordoante": {
+      "name": "Tiro Atordoante",
+      "icon": "i-bolt",
+      "target": "enemy",
+      "ult": true,
+      "values": {
+        "cd": 5,
+        "start": 1,
+        "dmg": 1.6
+      },
+      "text": "{dmg|pct} de dano e atordoa o alvo por 1 turno."
+    },
+    "jatoAgua": {
+      "name": "Jato d'Água",
+      "icon": "i-drop",
+      "target": "enemy",
+      "values": {
+        "cd": 0,
+        "dmg": 1
+      },
+      "text": "{dmg|pct} de dano em um inimigo."
+    },
+    "ondaCura": {
+      "name": "Onda Curativa",
+      "icon": "i-wave",
+      "target": "allies",
+      "kind": "heal",
+      "values": {
+        "cd": 3,
+        "start": 1,
+        "heal": 1.1
+      },
+      "text": "Cura todos os aliados em {heal|pct} do ataque."
+    },
+    "bolha": {
+      "name": "Bolha Protetora",
+      "icon": "i-bubble",
+      "target": "allies",
+      "kind": "shield",
+      "values": {
+        "cd": 4,
+        "start": 0,
+        "shield": 1.8,
+        "turns": 2
+      },
+      "text": "Dá a todos os aliados um escudo de {shield|pct} do ataque por {turns} turnos."
+    },
+    "mareAlta": {
+      "name": "Maré Alta",
+      "icon": "i-wave",
+      "target": "enemies",
+      "ult": true,
+      "values": {
+        "cd": 5,
+        "start": 1,
+        "dmg": 0.8,
+        "heal": 0.7
+      },
+      "text": "{dmg|pct} de dano em todos os inimigos e cura todos os aliados em {heal|pct} do ataque."
+    },
+    "machadada": {
+      "name": "Machadada",
+      "icon": "i-axe",
+      "target": "enemy",
+      "values": {
+        "cd": 0,
+        "dmg": 1
+      },
+      "text": "{dmg|pct} de dano em um inimigo."
+    },
+    "sede": {
+      "name": "Sede de Batalha",
+      "icon": "i-rage",
+      "target": "self",
+      "values": {
+        "cd": 4,
+        "start": 1,
+        "turns": 2,
+        "healMaxHp": 0.15
+      },
+      "text": "Ganha {rules.enrageAtk|bonus} de ataque por {turns} turnos e recupera {healMaxHp|pct} da vida."
+    },
+    "redemoinho": {
+      "name": "Redemoinho",
+      "icon": "i-rage",
+      "target": "enemies",
+      "values": {
+        "cd": 4,
+        "dmg": 0.9,
+        "burn": 0.2,
+        "turns": 2
+      },
+      "text": "{dmg|pct} de dano em todos os inimigos e queimadura por {turns} turnos."
+    },
+    "furiaSangue": {
+      "name": "Fúria Sanguinária",
+      "icon": "i-rage",
+      "target": "enemy",
+      "ult": true,
+      "values": {
+        "cd": 5,
+        "start": 1,
+        "dmg": 2.6,
+        "lifesteal": 0.5
+      },
+      "text": "{dmg|pct} de dano em um inimigo e recupera {lifesteal|pct} do dano causado."
+    },
+    "toqueSombrio": {
+      "name": "Toque Sombrio",
+      "icon": "i-moon",
+      "target": "enemy",
+      "values": {
+        "cd": 0,
+        "dmg": 1
+      },
+      "text": "{dmg|pct} de dano em um inimigo."
+    },
+    "drenar": {
+      "name": "Drenar Vida",
+      "icon": "i-drain",
+      "target": "enemy",
+      "values": {
+        "cd": 3,
+        "start": 1,
+        "dmg": 1.7,
+        "lifesteal": 0.6
+      },
+      "text": "{dmg|pct} de dano e recupera {lifesteal|pct} do dano causado."
+    },
+    "maldicao": {
+      "name": "Maldição",
+      "icon": "i-skull",
+      "target": "enemies",
+      "values": {
+        "cd": 4,
+        "dmg": 0.45,
+        "poison": 0.3,
+        "turns": 3
+      },
+      "text": "{dmg|pct} de dano em todos os inimigos e veneno por {turns} turnos."
+    },
+    "colheita": {
+      "name": "Colheita de Almas",
+      "icon": "i-skull",
+      "target": "enemies",
+      "ult": true,
+      "values": {
+        "cd": 5,
+        "start": 1,
+        "dmg": 1.1,
+        "lifesteal": 0.35
+      },
+      "text": "{dmg|pct} de dano em todos os inimigos; Nyx recupera {lifesteal|pct} do dano total."
+    },
+    "lanca": {
+      "name": "Estocada",
+      "values": {
+        "cd": 0,
+        "dmg": 1
+      }
+    },
+    "flecha": {
+      "name": "Flecha",
+      "values": {
+        "cd": 0,
+        "dmg": 1
+      }
+    },
+    "espada": {
+      "name": "Talho",
+      "values": {
+        "cd": 0,
+        "dmg": 1
+      }
+    },
+    "raio": {
+      "name": "Raio Sombrio",
+      "values": {
+        "cd": 0,
+        "dmg": 1.1
+      }
+    },
+    "rajada": {
+      "name": "Rajada Sombria",
+      "callout": true,
+      "values": {
+        "cd": 3,
+        "start": 1,
+        "dmg": 0.55
+      }
+    },
+    "jato": {
+      "name": "Jato de Lodo",
+      "values": {
+        "cd": 0,
+        "dmg": 1
+      }
+    },
+    "curaLodo": {
+      "name": "Lodo Restaurador",
+      "callout": true,
+      "values": {
+        "cd": 3,
+        "start": 1,
+        "healMaxHp": 0.25
+      }
+    },
+    "brasa": {
+      "name": "Brasa",
+      "values": {
+        "cd": 0,
+        "dmg": 1,
+        "burnChance": 0.3,
+        "burn": 0.25,
+        "turns": 2
+      }
+    },
+    "rajadaFogo": {
+      "name": "Rajada de Fogo",
+      "callout": true,
+      "values": {
+        "cd": 3,
+        "start": 1,
+        "dmg": 0.5,
+        "burn": 0.2,
+        "turns": 2
+      }
+    },
+    "pancada": {
+      "name": "Pancada",
+      "values": {
+        "cd": 0,
+        "dmg": 1.2,
+        "stun": 0.25
+      }
+    },
+    "bBasic": {
+      "name": "Ataque",
+      "values": {
+        "cd": 0,
+        "dmg": 1.3,
+        "dmgRanged": 1.35
+      }
+    },
+    "bAoe": {
+      "name": "Ataque em área",
+      "callout": true,
+      "values": {
+        "cd": 3,
+        "start": 2,
+        "dmg": 0.75,
+        "status": 0.2,
+        "turns": 2,
+        "useChance": 0.6
+      }
+    },
+    "bPrep": {
+      "name": "Preparar",
+      "callout": true,
+      "values": {
+        "cd": 0,
+        "every": 4
+      }
+    },
+    "bBig": {
+      "name": "Golpe",
+      "callout": true,
+      "values": {
+        "cd": 0,
+        "dmg": 1.9
+      }
+    },
+    "bRage": {
+      "name": "Fúria",
+      "callout": true,
+      "values": {
+        "cd": 0,
+        "at": 0.5,
+        "adds": 2,
+        "addLvl": -1
+      }
+    }
+  }
+}
