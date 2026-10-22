@@ -233,7 +233,76 @@ def caster_actions(rig, weapon_arm="arm.R", base=None):
         (32, {W: (-75, 0, 8), WH: (66, 0, 0), O: (-20, 0, 20), "spine": (2, 0, 0), "hips_loc": (0, 0, 0.02), "cape": (-12, 0, 0)}),
         (48, {**rest, "cape": (-6, 0, 0)})])
 
-def standard_actions(rig, weapon_arm="arm.R", base=None, shield_arm=False, grip="forward"):
+def archer_actions(rig, bow_arm="arm.L", base=None):
+    """Ações de arqueiro: arco em pé na mão (bow_arm), a outra mão puxa a corda.
+    O punho do arco compensa a subida do braço (arco continua em pé). Attack = 17 (solta), Cast = 19 (chuva para o alto)."""
+    Bw = bow_arm; Pu = "arm.R" if Bw == "arm.L" else "arm.L"; BH = "hand." + Bw[-1]
+    def act(name, keys):   # punho do arco compensa sempre: o arco fica em pé (é alavanca acima do ombro)
+        keys = [(f, {**p, BH: p.get(BH, (-0.88 * p[Bw][0], 0, 0))} if Bw in p else p) for f, p in keys]
+        action(rig, name, keys, base=base or {})
+    rest = {Bw: (-15, 0, 8), BH: (12, 0, 0), Pu: (-10, 0, 6)}
+    def aim(x, pull, extra=None):   # braço do arco erguido x graus, com o arco em pé; pull = quanto a outra mão recua
+        d = {Bw: (x, 0, 6), BH: (-0.88 * x, 0, 0), Pu: (x + 10 + pull, 0, -4)}
+        d.update(extra or {}); return d
+    act("Idle", [
+        (1, {**rest, "spine": (2, 0, 0), "cape": (-6, 0, 0)}),
+        (13, {**rest, "spine": (0, 0, 1), "head": (1, 0, -1), "hips_loc": (0, 0, -0.012), "cape": (-8, 0, 0)}),
+        (25, {**rest, "spine": (-2, 0, 0), "head": (2, 0, 0), "hips_loc": (0, 0, -0.025), "cape": (-11, 0, 0)}),
+        (37, {**rest, "spine": (0, 0, -1), "head": (1, 0, 1), "hips_loc": (0, 0, -0.012), "cape": (-8, 0, 0)}),
+        (49, {**rest, "spine": (2, 0, 0), "cape": (-6, 0, 0)})])
+    act("Attack", [
+        (1, rest),
+        (7, aim(-60, 0, {"spine": (0, 12, 0)})),
+        (12, aim(-85, 55, {"spine": (2, 18, 0), "head": (0, -10, 0)})),     # puxa a corda
+        (15, aim(-85, 62, {"spine": (2, 20, 0), "head": (0, -12, 0)})),     # mira
+        (17, aim(-85, 0, {"spine": (-4, 14, 0), "head": (-2, -8, 0), "hips_loc": (0, 0.04, 0)})),  # solta
+        (24, aim(-70, -5, {"spine": (-2, 8, 0)})),
+        (40, rest)])
+    act("Cast", [     # chuva de flechas: mira para o alto
+        (1, rest),
+        (8, aim(-70, 10, {"spine": (6, 0, 0)})),
+        (15, aim(-78, 60, {"spine": (14, 0, 0), "head": (10, 0, 0)})),
+        (19, aim(-78, 0, {"spine": (10, 0, 0), "head": (8, 0, 0), "hips_loc": (0, 0.05, 0)})),
+        (27, aim(-80, -5, {"spine": (2, 0, 0)})),
+        (40, rest)])
+    act("Hit", [
+        (1, rest),
+        (4, {Bw: (10, 0, 20), BH: (0, 0, 0), Pu: (14, 0, 20), "spine": (18, 0, 6), "head": (14, 0, 0), "hips_loc": (0, 0.1, 0), "cape": (10, 0, 0)}),
+        (10, {**rest, "spine": (7, 0, 2), "head": (5, 0, 0), "hips_loc": (0, 0.05, 0)}),
+        (24, rest)])
+    act("Death", [
+        (1, rest),
+        (8, {Bw: (20, 0, 8), Pu: (20, 0, 30), "spine": (20, 0, 0), "head": (16, 0, 0), "hips_loc": (0, 0.06, 0)}),
+        (18, {"root": (40, 0, 0), Bw: (-20, 0, 8), Pu: (-20, 0, 45), "spine": (14, 0, 0), "head": (12, 0, 0), "hips_loc": (0, 0.1, 0)}),
+        (26, {"root": (94, 0, 0), Bw: (-60, 0, 8), Pu: (-60, 0, 55), "spine": (6, 0, 0), "head": (16, 0, 0), "leg.L": (-25, 0, 0), "leg.R": (-30, 0, 0)}),
+        (32, {"root": (86, 0, 0), Bw: (-55, 0, 8), Pu: (-55, 0, 55), "spine": (10, 0, 0), "head": (12, 0, 0), "leg.L": (-18, 0, 0), "leg.R": (-22, 0, 0)}),
+        (44, {"root": (90, 0, 0), Bw: (-60, 0, 8), Pu: (-60, 0, 55), "spine": (8, 0, 0), "head": (14, 0, 0), "leg.L": (-20, 0, 0), "leg.R": (-25, 0, 0)})])
+    act("Victory", [
+        (1, rest),
+        (8, {**rest, "spine": (-6, 0, 0), "hips_loc": (0, 0, -0.06)}),
+        (14, aim(-75, 0, {"hips_loc": (0, 0, 0.3), "cape": (-25, 0, 0)})),
+        (20, aim(-70, 0, {"hips_loc": (0, 0, 0.02), "cape": (-12, 0, 0)})),
+        (26, aim(-75, 0, {"hips_loc": (0, 0, 0.3), "cape": (-25, 0, 0)})),
+        (32, aim(-70, 0, {"hips_loc": (0, 0, 0.02), "cape": (-12, 0, 0)})),
+        (48, rest)])
+
+def bow(rig, hand_bone, x, wood_m, string_m, size=0.75):
+    """Arco em pé na mão, aberto para a frente (corda atrás). Devolve os nomes das peças."""
+    import bmesh as _bm
+    objs = []
+    # arco: toro parcial em pé no plano YZ
+    bpy.ops.mesh.primitive_torus_add(major_radius=size * 0.55, minor_radius=0.035, location=(x, -0.18, 0.78),
+                                     rotation=(0, math.radians(90), 0), major_segments=40, minor_segments=8)
+    o = bpy.context.object; o.name = "arco"
+    bm = _bm.new(); bm.from_mesh(o.data)
+    for v in [v for v in bm.verts if v.co.y > 0.08]: bm.verts.remove(v)   # deixa só a metade da frente
+    bm.to_mesh(o.data); bm.free(); _finish(o, wood_m); objs.append(o)
+    objs.append(tube("corda", string_m, (x, -0.14, 0.78), 0.008, size * 1.02))
+    objs.append(blob("empunhadura", string_m, (x, -0.38, 0.78), (0.05, 0.05, 0.09)))
+    attach(rig, hand_bone, objs)
+    return [o.name for o in objs]
+
+def standard_actions(rig, weapon_arm="arm.R", base=None, shield_arm=False, grip="forward", dual=False):
     """As 6 ações padrão, com a mesma linguagem corporal em todos os personagens.
     Convenção (calibrada com renders laterais, personagem olhando para -Y):
       braços: X negativo = para a frente/para cima (-90 = horizontal à frente, -128 = máximo para a arma: acima disso ela cruza a cabeça grande), positivo = para trás
@@ -241,6 +310,7 @@ def standard_actions(rig, weapon_arm="arm.R", base=None, shield_arm=False, grip=
       braços: Z positivo = abre para fora do corpo (os dois lados)
       hips_loc: Y negativo = avança, Z = sobe
     shield_arm=True: o outro braço segura um escudo e fica em guarda (pose base) em todas as ações
+    dual=True: arma nas duas mãos; nenhum braço sobe acima de -80 e os braços abrem para fora nas poses erguidas
     grip="up": arma em pé (cajado). O punho compensa a subida do braço para o cajado continuar em pé
                e não cruzar a cabeça (punho = -0,85 × braço, medido com probe).
       armas ficam horizontais apontando para a frente na pose de descanso (postura de guarda)
@@ -252,6 +322,17 @@ def standard_actions(rig, weapon_arm="arm.R", base=None, shield_arm=False, grip=
     WH = "hand." + W[-1]   # punho da arma: inclina a arma para cima nas poses erguidas (passa acima do ombro, não atrás da cabeça)
     B = base or {}
     def act(name, keys):
+        if grip == "forward":   # punho compensa: a arma continua apontando para a frente quando o braço sobe
+            hands = [(W, WH)] + ([(O, "hand." + O[-1])] if dual else [])
+            def comp(p):
+                p = dict(p)
+                for arm, hb in hands:
+                    if arm in p and hb not in p and p[arm][0] < -30: p[hb] = (-0.6 * p[arm][0], 0, 0)
+                return p
+            keys = [(f, comp(p)) for f, p in keys]
+        if dual:
+            def cap(r): return (max(r[0], -80), r[1], max(r[2], 18) if r[0] < -40 else r[2])
+            keys = [(f, {k: (cap(v) if k in (W, O) else v) for k, v in p.items()}) for f, p in keys]
         if grip == "up":
             keys = [(f, {**p, WH: p.get(WH, (-0.85 * p[W][0], 0, 0))} if W in p else p) for f, p in keys]
         if shield_arm:   # o braço do escudo não acompanha os gestos: mantém a guarda, só abre um pouco
