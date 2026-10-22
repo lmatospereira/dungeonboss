@@ -5,7 +5,7 @@ extends RefCounted
 const TOON := preload("res://shaders/toon.gdshader")
 const OUTLINE := preload("res://shaders/outline.gdshader")
 
-static func apply(root: Node, outline_width := 0.018) -> Array:
+static func apply(root: Node, outline_width := 0.009) -> Array:
 	var made: Array = []
 	var cache := {}
 	for mi in root.find_children("*", "MeshInstance3D", true, false):

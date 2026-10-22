@@ -8,8 +8,8 @@ reset()
 skin = mat("pele", hexc("f2b48c"))
 tunic = mat("tunica", hexc("4d7a3a"))
 tunic_dk = mat("tunica_escura", hexc("365a29"))
-mail = mat("cota", hexc("8f98a3"), rough=0.45, metal=0.7)
-steel = mat("aco", hexc("b8c2cc"), rough=0.3, metal=0.9)
+mail = mat("cota", hexc("6f7884"), rough=0.5, metal=0.7)
+steel = mat("aco", hexc("8e99a6"), rough=0.35, metal=0.9)
 gold = mat("ouro", hexc("e2ad35"), rough=0.35, metal=0.85)
 leather = mat("couro", hexc("5a3a22"), rough=0.8)
 wood = mat("madeira", hexc("8a5a2b"), rough=0.85)
@@ -72,21 +72,25 @@ for sx, arm, hand in ((1, "arm.L", "hand.L"), (-1, "arm.R", "hand.R")):
     attach(rig, arm, [tube(f"manga{arm}", tunic, (0.47 * sx, 0, 0.93), 0.12, 0.32)])
     attach(rig, hand, [blob(f"luva{hand}", leather, (0.51 * sx, -0.02, 0.7), (0.15, 0.15, 0.15))])
 
-# ---- escudo redondo de madeira com aro, rebites e emblema de folha (mão esquerda)
-cx, cy, cz = 0.62, -0.22, 0.72
+# ---- escudo redondo de madeira com aro, rebites e emblema de folha
+# Modelado com o braço esquerdo já em guarda (GUARD): fica à frente do corpo, preso à mão.
+GUARD = {"arm.L": (-40, 0, 12)}
+cx, cy, cz = 0.47, -0.72, 0.8
+FACE = (math.radians(90), 0, math.radians(-12))      # disco virado para a frente, levemente para fora
 shield = [
-    tube("escudo", wood, (cx, cy, cz), 0.42, 0.08, rot=(math.radians(90), 0, math.radians(-30)), verts=32),
-    ring("aro_escudo", steel, (cx, cy, cz), 0.42, 0.035, rot=(math.radians(90), 0, math.radians(-30))),
-    blob("umbo", steel, (cx - 0.04, cy - 0.07, cz), (0.12, 0.06, 0.12)),
-    blob("folha", tunic, (cx - 0.05, cy - 0.06, cz + 0.2), (0.08, 0.02, 0.12)),
+    tube("escudo", wood, (cx, cy, cz), 0.36, 0.07, rot=FACE, verts=40),
+    ring("aro_escudo", steel, (cx, cy, cz), 0.36, 0.03, rot=FACE),
+    blob("umbo", steel, (cx + 0.01, cy - 0.06, cz), (0.11, 0.06, 0.11)),
+    blob("folha", tunic, (cx + 0.02, cy - 0.05, cz + 0.2), (0.07, 0.02, 0.11)),
+    block("alca", leather, (cx, cy + 0.06, cz), (0.05, 0.03, 0.16), bevel=0.01),
 ]
 for i in range(8):
     a = i / 8 * math.tau
-    shield.append(blob(f"rebite{i}", gold, (cx + math.cos(a) * 0.33 * 0.87, cy - 0.05 + math.cos(a) * 0.33 * 0.5 * 0, cz + math.sin(a) * 0.33), (0.03, 0.03, 0.03)))
-attach(rig, "hand.L", shield)
+    shield.append(blob(f"rebite{i}", gold, (cx + math.cos(a) * 0.28, cy - 0.05, cz + math.sin(a) * 0.28), (0.028, 0.028, 0.028)))
+attach_posed(rig, "hand.L", shield, GUARD)
 
 # ---- machado de lâmina dupla (mão direita), horizontal apontando para a frente na pose de guarda
-hx, hz = -0.53, 0.68
+hx, hz = -0.66, 0.68   # afastado da lateral: o machado passa ao lado da cabeça no golpe por cima
 R90 = (math.radians(90), 0, 0)
 ax = [
     tube("cabo", wood, (hx, -0.4, hz), 0.045, 1.05, rot=R90),
@@ -101,5 +105,6 @@ attach(rig, "hand.R", ax)
 # ---- capa
 attach(rig, "cape", [cape("capa", red, (0, 0.22, 1.2), 0.42, 0.95)])
 
-standard_actions(rig, weapon_arm="arm.R")
+standard_actions(rig, weapon_arm="arm.R", base=GUARD, shield_arm=True)
+report_clipping(rig, gear=["escudo", "aro_escudo", "cabo", "lamina_cima", "lamina_baixo"], body=["barriga", "peito", "cabeca", "barba", "saia"])
 export(out_path("characters/heroes/brom.glb"))

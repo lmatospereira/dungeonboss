@@ -150,17 +150,31 @@ def attach(rig, bone, objs):
         o.matrix_world = mw
 
 # ------------------------------------------------------------------ animação
-def action(rig, name, keys):
+def bone_euler(bone, rot):
+    """Pose em graus → Euler do osso. Braços: Z positivo = para fora do corpo nos dois lados (medido com probe)."""
+    rx, ry, rz = rot
+    if bone in ("arm.L", "hand.L"): rz = -rz
+    return Euler((math.radians(rx), math.radians(ry), math.radians(rz)))
+
+LAG = {"head": 2, "cape": 4, "hand.L": 1, "hand.R": 1}   # atraso (quadros) que dá peso ao movimento
+
+def action(rig, name, keys, base=None, lag=LAG):
     """keys: [(quadro, {osso: (rx, ry, rz) em graus, "hips_loc": (x, y, z)})].
-    Todo osso é gravado em todo quadro-chave (ossos não citados voltam à pose neutra)."""
+    - Todo osso é gravado em todo quadro-chave; ossos não citados vão para a pose base (ou neutra).
+    - base: pose de fundo do personagem (ex.: braço do escudo em guarda), usada quando o quadro não cita o osso.
+    - lag: cabeça, capa e mãos acompanham o corpo com alguns quadros de atraso (continuidade do movimento).
+    Interpolação Bézier com alças automáticas (padrão do Blender): acelera e desacelera suave."""
+    base = base or {}
     act = bpy.data.actions.new(name)
     rig.animation_data_create(); rig.animation_data.action = act
-    for f, poses in keys:
+    last = keys[-1][0]
+    for i, (f, poses) in enumerate(keys):
         for b in BONES:
             pb = rig.pose.bones[b]
             pb.rotation_mode = 'XYZ'
-            pb.rotation_euler = Euler([math.radians(a) for a in poses.get(b, (0, 0, 0))])
-            pb.keyframe_insert("rotation_euler", frame=f)
+            pb.rotation_euler = bone_euler(b, poses.get(b, base.get(b, (0, 0, 0))))
+            fl = f if i in (0, len(keys) - 1) else min(last, f + lag.get(b, 0))
+            pb.keyframe_insert("rotation_euler", frame=fl)
         hb = rig.pose.bones["hips"]
         hb.location = Vector(poses.get("hips_loc", (0, 0, 0)))
         hb.keyframe_insert("location", frame=f)
@@ -170,48 +184,109 @@ def action(rig, name, keys):
     rig.animation_data.action = None
     return act
 
-def standard_actions(rig, weapon_arm="arm.R"):
+def standard_actions(rig, weapon_arm="arm.R", base=None, shield_arm=False):
     """As 6 ações padrão, com a mesma linguagem corporal em todos os personagens.
     Convenção (calibrada com renders laterais, personagem olhando para -Y):
-      braços: X negativo = para a frente/para cima (-90 = horizontal à frente, -170 = acima da cabeça), positivo = para trás
+      braços: X negativo = para a frente/para cima (-90 = horizontal à frente, -128 = máximo para a arma: acima disso ela cruza a cabeça grande), positivo = para trás
       spine/head/root: X positivo = inclina para trás, negativo = para a frente
+      braços: Z positivo = abre para fora do corpo (os dois lados)
+      hips_loc: Y negativo = avança, Z = sobe
+    shield_arm=True: o outro braço segura um escudo e fica em guarda (pose base) em todas as ações
       armas ficam horizontais apontando para a frente na pose de descanso (postura de guarda)
-    Quadros de impacto (a apresentação sincroniza o dano com eles): Attack = 16, Cast = 18."""
+    Quadros de impacto (a apresentação sincroniza o dano com eles): Attack = 17, Cast = 19.
+    A arma nunca sobe acima de -110: com a cabeça grande do estilo chibi, acima disso ela cruza a cabeça.
+    Idle e Victory começam e terminam iguais (laço sem emenda)."""
     W = weapon_arm
     O = "arm.L" if W == "arm.R" else "arm.R"
-    action(rig, "Idle", [
-        (1, {"spine": (2, 0, 0), "arm.L": (-8, 0, 8), "arm.R": (-8, 0, -8), "cape": (-6, 0, 0)}),
-        (16, {"spine": (-2, 0, 0), "head": (-3, 0, 0), "arm.L": (-14, 0, 12), "arm.R": (-14, 0, -12), "hips_loc": (0, 0, -0.03), "cape": (-10, 0, 0)}),
-        (31, {"spine": (2, 0, 0), "arm.L": (-8, 0, 8), "arm.R": (-8, 0, -8), "cape": (-6, 0, 0)})])
-    action(rig, "Attack", [
-        (1, {}),
-        (8, {W: (-165, 0, 0), "spine": (12, 0, 6), "head": (6, 0, 0), "cape": (-8, 0, 0)}),
-        (12, {W: (-180, 0, 0), "spine": (16, 0, 8), "head": (8, 0, 0), "cape": (-10, 0, 0)}),
-        (16, {W: (-25, 0, 0), "spine": (-22, 0, -8), "head": (-10, 0, 0), "cape": (-30, 0, 0)}),
-        (24, {W: (-15, 0, 0), "spine": (-10, 0, -4), "cape": (-20, 0, 0)}),
-        (34, {})])
-    action(rig, "Cast", [
-        (1, {}),
-        (10, {W: (-120, 0, -15), O: (-70, 0, 15), "spine": (10, 0, 0), "head": (8, 0, 0)}),
-        (18, {W: (-165, 0, -10), O: (-110, 0, 20), "spine": (14, 0, 0), "head": (12, 0, 0), "cape": (-10, 0, 0)}),
-        (24, {W: (-95, 0, -10), O: (-50, 0, 15), "spine": (-8, 0, 0), "cape": (-18, 0, 0)}),
-        (34, {})])
-    action(rig, "Hit", [
-        (1, {}),
-        (5, {"spine": (18, 0, 6), "head": (14, 0, 0), "arm.L": (30, 0, 25), "arm.R": (30, 0, -25), "cape": (10, 0, 0)}),
-        (14, {"spine": (4, 0, 0)}),
-        (20, {})])
-    action(rig, "Death", [
-        (1, {}),
-        (10, {"spine": (25, 0, 0), "head": (20, 0, 0), "arm.L": (40, 0, 40), "arm.R": (40, 0, -40)}),
-        (24, {"root": (85, 0, 0), "spine": (10, 0, 0), "head": (10, 0, 0), "arm.L": (-60, 0, 50), "arm.R": (-60, 0, -50), "leg.L": (-20, 0, 0), "leg.R": (-25, 0, 0)}),
-        (40, {"root": (90, 0, 0), "spine": (8, 0, 0), "head": (14, 0, 0), "arm.L": (-70, 0, 55), "arm.R": (-70, 0, -55), "leg.L": (-20, 0, 0), "leg.R": (-25, 0, 0)})])
-    action(rig, "Victory", [
-        (1, {}),
-        (10, {W: (-175, 0, -10), O: (-30, 0, 30), "spine": (8, 0, 0), "head": (12, 0, 0), "hips_loc": (0, 0, 0.25), "cape": (-25, 0, 0)}),
-        (20, {W: (-160, 0, -20), O: (-20, 0, 20), "spine": (4, 0, 0), "head": (6, 0, 0), "cape": (-10, 0, 0)}),
-        (30, {W: (-175, 0, -10), O: (-30, 0, 30), "spine": (8, 0, 0), "head": (12, 0, 0), "hips_loc": (0, 0, 0.25), "cape": (-25, 0, 0)}),
-        (40, {W: (-160, 0, -20), O: (-20, 0, 20), "spine": (4, 0, 0), "head": (6, 0, 0), "cape": (-10, 0, 0)})])
+    WH = "hand." + W[-1]   # punho da arma: inclina a arma para cima nas poses erguidas (passa acima do ombro, não atrás da cabeça)
+    B = base or {}
+    def act(name, keys):
+        if shield_arm:   # o braço do escudo não acompanha os gestos: mantém a guarda, só abre um pouco
+            g = B.get(O, (-40, 0, 12))
+            keys = [(f, {k: (v if k != O else (g[0] - 6, 0, g[2] + 16)) for k, v in p.items()}) for f, p in keys]
+        action(rig, name, keys, base=B)
+    act("Idle", [
+        (1, {"spine": (2, 0, 0), "head": (-1, 0, 0), W: (-10, 0, 6), "cape": (-6, 0, 0)}),
+        (13, {"spine": (0, 0, 1), "head": (1, 0, -1), W: (-12, 0, 8), "hips_loc": (0, 0, -0.012), "cape": (-8, 0, 0)}),
+        (25, {"spine": (-2, 0, 0), "head": (2, 0, 0), W: (-14, 0, 9), "hips_loc": (0, 0, -0.025), "cape": (-11, 0, 0)}),
+        (37, {"spine": (0, 0, -1), "head": (1, 0, 1), W: (-12, 0, 8), "hips_loc": (0, 0, -0.012), "cape": (-8, 0, 0)}),
+        (49, {"spine": (2, 0, 0), "head": (-1, 0, 0), W: (-10, 0, 6), "cape": (-6, 0, 0)})])
+    act("Attack", [   # golpe lateral: prepara com o braço para trás, corta para a frente e para baixo
+        (1, {W: (-10, 0, 6)}),
+        (5, {W: (-20, 0, 10), "spine": (-4, 0, 0), "hips_loc": (0, 0.02, -0.04)}),                       # antecipação: abaixa
+        (11, {W: (55, 0, 22), "spine": (6, -14, 0), "head": (2, 6, 0), "hips_loc": (0, 0.05, -0.02), "cape": (-6, 0, 0)}),  # braço atrás, tronco gira
+        (15, {W: (65, 0, 24), "spine": (8, -18, 0), "head": (2, 8, 0), "hips_loc": (0, 0.06, -0.02)}),  # segura
+        (17, {W: (-75, 0, 10), "spine": (-14, 16, 0), "head": (-6, -4, 0), "hips_loc": (0, -0.14, -0.05), "cape": (-20, 0, 0)}),  # impacto
+        (20, {W: (-60, 0, 8), "spine": (-18, 20, 0), "head": (-8, -6, 0), "hips_loc": (0, -0.16, -0.06), "cape": (-32, 0, 0)}),   # passa do ponto
+        (28, {W: (-30, 0, 8), "spine": (-6, 6, 0), "hips_loc": (0, -0.05, -0.02), "cape": (-16, 0, 0)}),
+        (40, {W: (-10, 0, 6), "cape": (-6, 0, 0)})])
+    act("Cast", [
+        (1, {W: (-10, 0, 6)}),
+        (8, {W: (-60, 0, 0), O: (-45, 0, 12), "spine": (4, 0, 0), "head": (2, 0, 0), "hips_loc": (0, 0, -0.03)}),
+        (16, {W: (-105, 0, 0), O: (-100, 0, 18), "spine": (8, 0, 0), "head": (4, 0, 0), "hips_loc": (0, 0.03, 0.04)}),
+        (19, {W: (-100, 0, 0), O: (-75, 0, 14), "spine": (-10, 0, 0), "head": (-6, 0, 0), "hips_loc": (0, -0.06, 0), "cape": (-16, 0, 0)}),  # lança
+        (26, {W: (-55, 0, 8), O: (-40, 0, 12), "spine": (-4, 0, 0), "cape": (-14, 0, 0)}),
+        (40, {W: (-10, 0, 6), "cape": (-6, 0, 0)})])
+    act("Hit", [
+        (1, {W: (-10, 0, 6)}),
+        (4, {"spine": (20, 0, 6), "head": (16, 0, 0), W: (20, 0, 20), "hips_loc": (0, 0.1, 0), "cape": (10, 0, 0)}),
+        (10, {"spine": (8, 0, 2), "head": (6, 0, 0), W: (0, 0, 10), "hips_loc": (0, 0.05, 0)}),
+        (24, {W: (-10, 0, 6), "cape": (-6, 0, 0)})])
+    act("Death", [
+        (1, {W: (-10, 0, 6)}),
+        (8, {"spine": (22, 0, 0), "head": (18, 0, 0), W: (35, 0, 22), O: (35, 0, 35), "hips_loc": (0, 0.06, 0)}),
+        (18, {"root": (40, 0, 0), "spine": (14, 0, 0), "head": (12, 0, 0), W: (-20, 0, 22), O: (-30, 0, 45), "hips_loc": (0, 0.1, 0)}),
+        (26, {"root": (94, 0, 0), "spine": (6, 0, 0), "head": (16, 0, 0), W: (-40, 0, 22), O: (-70, 0, 55), "leg.L": (-25, 0, 0), "leg.R": (-30, 0, 0)}),
+        (32, {"root": (86, 0, 0), "spine": (10, 0, 0), "head": (12, 0, 0), W: (-38, 0, 22), O: (-65, 0, 55), "leg.L": (-18, 0, 0), "leg.R": (-22, 0, 0)}),
+        (44, {"root": (90, 0, 0), "spine": (8, 0, 0), "head": (14, 0, 0), W: (-40, 0, 22), O: (-70, 0, 55), "leg.L": (-20, 0, 0), "leg.R": (-25, 0, 0)})])
+    act("Victory", [
+        (1, {W: (-10, 0, 6)}),
+        (8, {W: (-60, 0, 0), "spine": (-6, 0, 0), "hips_loc": (0, 0, -0.06)}),
+        (14, {W: (-110, 0, 0), "spine": (4, 0, 0), "head": (4, 0, 0), "hips_loc": (0, 0, 0.3), "cape": (-25, 0, 0)}),
+        (20, {W: (-110, 0, 0), "spine": (2, 0, 0), "head": (2, 0, 0), "hips_loc": (0, 0, 0.02), "cape": (-12, 0, 0)}),
+        (26, {W: (-110, 0, 0), "spine": (4, 0, 0), "head": (4, 0, 0), "hips_loc": (0, 0, 0.3), "cape": (-25, 0, 0)}),
+        (32, {W: (-110, 0, 0), "spine": (2, 0, 0), "head": (2, 0, 0), "hips_loc": (0, 0, 0.02), "cape": (-12, 0, 0)}),
+        (48, {W: (-10, 0, 6), "cape": (-6, 0, 0)})])
+
+def attach_posed(rig, bone, objs, pose):
+    """Prende peças modeladas com o personagem já na pose indicada (ex.: escudo modelado com o braço em guarda).
+    Assim a peça fica exatamente onde foi desenhada quando o braço estiver naquela pose."""
+    for b, rot in pose.items():
+        pb = rig.pose.bones[b]; pb.rotation_mode = 'XYZ'; pb.rotation_euler = bone_euler(b, rot)
+    bpy.context.view_layer.update()
+    attach(rig, bone, objs)
+    for b in pose: rig.pose.bones[b].rotation_euler = (0, 0, 0)
+    bpy.context.view_layer.update()
+
+def report_clipping(rig, gear, body, frames=None):
+    """Confere se peças de equipamento atravessam o corpo nas ações (BVH). Imprime e devolve os casos."""
+    from mathutils.bvhtree import BVHTree
+    dg = bpy.context.evaluated_depsgraph_get
+    problems = []
+    rig.animation_data_create()
+    for act in [a for a in bpy.data.actions]:
+        for t in rig.animation_data.nla_tracks: t.mute = True
+        rig.animation_data.action = act
+        f0, f1 = (int(x) for x in act.frame_range)
+        for f in (frames or range(f0, f1 + 1, 3)):
+            bpy.context.scene.frame_set(f)
+            d = dg()
+            def tree(name):
+                ob = bpy.data.objects[name].evaluated_get(d); me = ob.to_mesh()
+                t = BVHTree.FromPolygons([ob.matrix_world @ v.co for v in me.vertices], [p.vertices for p in me.polygons])
+                ob.to_mesh_clear(); return t
+            trees = {n: tree(n) for n in gear + body}
+            for g in gear:
+                for b in body:
+                    if trees[g].overlap(trees[b]): problems.append((act.name, f, g, b))
+    rig.animation_data.action = None
+    for t in rig.animation_data.nla_tracks: t.mute = False
+    seen = set()
+    for a, f, g, b in problems:
+        if (a, g, b) in seen: continue
+        seen.add((a, g, b)); print(f"CLIPPING: {a} quadro {f}: {g} atravessa {b}")
+    if not problems: print("sem atravessamentos")
+    return problems
 
 # ------------------------------------------------------------------ exportação
 def export(path):

@@ -18,6 +18,9 @@ func _ready() -> void:
 	hero.rotation.y = deg_to_rad(-25)
 	Stylize.apply(hero)
 	anim = hero.find_children("*", "AnimationPlayer", true, false)[0]
+	for loop in ["Idle", "Victory"]:   # ações em laço (começam e terminam na mesma pose)
+		if anim.has_animation(loop): anim.get_animation(loop).loop_mode = Animation.LOOP_LINEAR
+	anim.playback_default_blend_time = 0.22   # mistura entre ações: sem trancos
 	anim.animation_finished.connect(_next)
 	label = Label.new()
 	label.position = Vector2(24, 20)
@@ -30,8 +33,8 @@ func _next(_n) -> void:
 	step += 1
 	label.text = "Brom · " + a + "  (Godot %s, %s)" % [Engine.get_version_info()["string"], OS.get_name()]
 	anim.play(a)
-	if a == "Idle":
-		await get_tree().create_timer(1.6).timeout
+	if a == "Idle" or a == "Victory":
+		await get_tree().create_timer(2.4).timeout
 		_next("")
 
 func _environment() -> void:
@@ -40,14 +43,14 @@ func _environment() -> void:
 	env.background_color = Color("1b120f")
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color("6b5a80")
-	env.ambient_light_energy = 0.35
+	env.ambient_light_energy = 0.5
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
 	var key := DirectionalLight3D.new()       # luz principal quente
 	key.light_color = Color("ffd9a8")
-	key.light_energy = 0.95
+	key.light_energy = 1.15
 	key.shadow_enabled = true
 	key.rotation_degrees = Vector3(-55, -35, 0)
 	add_child(key)
