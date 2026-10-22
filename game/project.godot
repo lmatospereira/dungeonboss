@@ -7,6 +7,7 @@ config_version=5
 
 config/name="Masmorra do Rei Ogro"
 config/description="RPG de masmorra 3D com combate por turnos."
+run/main_scene="res://scenes/showcase.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 
 [display]

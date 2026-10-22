@@ -44,6 +44,7 @@ services:
       - "${PUBLIC_BIND:-0.0.0.0}:${PUBLIC_PORT:-8090}:80"
     volumes:
       - ./www:/usr/share/nginx/html:ro
+      - ./godot:/usr/share/nginx/v2:ro   # versão Godot (exportação web), servida em /v2/
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks: [internal]
 

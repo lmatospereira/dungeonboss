@@ -1,6 +1,6 @@
 # Operação: publicar e manter o servidor
 
-O jogo roda numa VPS como um projeto Docker Compose chamado `masmorra`, com três containers: `web`, `api` e `db`. Endereço do servidor, usuário, chave SSH e URL pública **não ficam no repositório**. Eles moram só na máquina de quem opera.
+O jogo roda numa VPS como um projeto Docker Compose chamado `masmorra`, com três containers: `web`, `api` e `db`. O `web` serve a versão three.js na raiz e a versão Godot (exportação web) em `/v2/`, até a troca. Endereço do servidor, usuário, chave SSH e URL pública **não ficam no repositório**. Eles moram só na máquina de quem opera.
 
 ## Ferramenta local `dbvps`
 
@@ -21,7 +21,7 @@ Rode os comandos dentro da pasta do repositório:
 |---|---|
 | `dbvps check` | Testa o SSH e mostra uptime, disco, memória e os containers do jogo |
 | `dbvps status` | `docker compose ps` e teste da API (`/api/health`) |
-| `dbvps deploy` | `npm ci` + `npm run build` local, envia `deploy/`, `server/` e `www/` com rsync, roda `docker compose up -d --build` e espera a API responder |
+| `dbvps deploy` | `npm ci` + `npm run build` local e exportação web do Godot (`tools/godot.sh export`). Envia `deploy/`, `server/`, `www/` e `game/build/web/` com rsync, roda `docker compose up -d --build`, reinicia o `web` e espera a API responder |
 | `dbvps logs [api\|web\|db] [n]` | Últimos registros dos containers |
 | `dbvps restart [serviço]` | Reinicia os containers |
 | `dbvps db '<sql>'` | Roda SQL no Postgres (sem argumento, abre o `psql`) |
@@ -95,5 +95,6 @@ Deixe `PROXY_NETWORK` vazio e `PUBLIC_BIND=0.0.0.0`. O `dbvps deploy` abre `PUBL
 | Tela inicial mostra "Offline" | `dbvps status` e `dbvps logs api`. O nginx precisa repassar `/api/` para `api:3000` |
 | `dbvps deploy` falha no build com 502 | Instabilidade do Docker Hub. Espere alguns segundos e repita |
 | API reinicia em loop com "JWT_SECRET ausente" | O `.env` do servidor foi apagado ou editado |
+| `/v2/` em tela preta, `index.js` com 404 | A rota `/v2/` precisa ser `location ^~ /v2/` no `nginx.conf` (senão a regra de cache de `.js` procura na pasta errada). Depois de mudar o `nginx.conf`, reinicie o `web` (`dbvps restart web`): `nginx -s reload` não basta, porque o arquivo montado foi substituído |
 | HTTPS não abre pelo proxy | `docker exec <caddy> wget -qO- http://masmorra-web/api/health` precisa responder. Se não responder, o `web` não entrou na rede do proxy (confira `PROXY_NETWORK`) |
 | Jogadores desconectados de repente | O `JWT_SECRET` mudou |
