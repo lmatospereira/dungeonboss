@@ -184,7 +184,56 @@ def action(rig, name, keys, base=None, lag=LAG):
     rig.animation_data.action = None
     return act
 
-def standard_actions(rig, weapon_arm="arm.R", base=None, shield_arm=False):
+def caster_actions(rig, weapon_arm="arm.R", base=None):
+    """Ações de conjurador (cajado em pé): gestos à frente do corpo, o cajado nunca passa por trás da cabeça.
+    Mesmos nomes e quadros de impacto das ações padrão (Attack = 17, Cast = 19)."""
+    W = weapon_arm; O = "arm.L" if W == "arm.R" else "arm.R"; WH = "hand." + W[-1]
+    def act(name, keys): action(rig, name, keys, base=base or {})
+    rest = {W: (-12, 0, 10), WH: (0, 0, 0)}
+    act("Idle", [
+        (1, {**rest, "spine": (2, 0, 0), "cape": (-6, 0, 0)}),
+        (13, {W: (-14, 0, 11), WH: (12, 0, 0), O: (-8, 0, 8), "spine": (0, 0, 1), "head": (1, 0, -1), "hips_loc": (0, 0, -0.012), "cape": (-8, 0, 0)}),
+        (25, {W: (-16, 0, 12), WH: (14, 0, 0), O: (-12, 0, 10), "spine": (-2, 0, 0), "head": (2, 0, 0), "hips_loc": (0, 0, -0.025), "cape": (-11, 0, 0)}),
+        (37, {W: (-14, 0, 11), WH: (12, 0, 0), O: (-8, 0, 8), "spine": (0, 0, -1), "head": (1, 0, 1), "hips_loc": (0, 0, -0.012), "cape": (-8, 0, 0)}),
+        (49, {**rest, "spine": (2, 0, 0), "cape": (-6, 0, 0)})])
+    act("Attack", [   # projeta o cajado à frente e dispara
+        (1, rest),
+        (8, {W: (-20, 0, 14), WH: (16, 0, 0), O: (-30, 0, 15), "spine": (6, 0, 0), "hips_loc": (0, 0.03, -0.03)}),
+        (14, {W: (-30, 0, 14), WH: (24, 0, 0), O: (-50, 0, 20), "spine": (8, 0, 0), "head": (4, 0, 0)}),
+        (17, {W: (-62, 0, 10), WH: (50, 0, 0), O: (-20, 0, 15), "spine": (-12, 0, 0), "head": (-6, 0, 0), "hips_loc": (0, -0.08, -0.03), "cape": (-18, 0, 0)}),
+        (21, {W: (-55, 0, 10), WH: (46, 0, 0), "spine": (-14, 0, 0), "hips_loc": (0, -0.09, -0.04), "cape": (-24, 0, 0)}),
+        (30, {W: (-30, 0, 10), WH: (25, 0, 0), "spine": (-4, 0, 0), "cape": (-12, 0, 0)}),
+        (40, {**rest, "cape": (-6, 0, 0)})])
+    act("Cast", [     # ergue o cajado em pé diante do corpo, a outra mão conjura
+        (1, rest),
+        (8, {W: (-40, 0, 10), WH: (34, 0, 0), O: (-50, 0, 20), "spine": (4, 0, 0), "hips_loc": (0, 0, -0.03)}),
+        (15, {W: (-75, 0, 8), WH: (64, 0, 0), O: (-95, 0, 25), "spine": (8, 0, 0), "head": (6, 0, 0), "hips_loc": (0, 0.02, 0.05)}),
+        (19, {W: (-70, 0, 8), WH: (60, 0, 0), O: (-70, 0, 15), "spine": (-10, 0, 0), "head": (-4, 0, 0), "hips_loc": (0, -0.06, 0), "cape": (-16, 0, 0)}),
+        (27, {W: (-45, 0, 10), WH: (38, 0, 0), O: (-35, 0, 12), "spine": (-4, 0, 0), "cape": (-12, 0, 0)}),
+        (40, {**rest, "cape": (-6, 0, 0)})])
+    act("Hit", [
+        (1, rest),
+        (4, {W: (6, 0, 2), WH: (-4, 0, 0), O: (14, 0, 22), "spine": (18, 0, 6), "head": (14, 0, 0), "hips_loc": (0, 0.1, 0), "cape": (10, 0, 0)}),
+        (10, {W: (-4, 0, 0), WH: (4, 0, 0), "spine": (7, 0, 2), "head": (5, 0, 0), "hips_loc": (0, 0.05, 0)}),
+        (24, {**rest, "cape": (-6, 0, 0)})])
+    # braço do cajado fecha um pouco (Z negativo) na queda e no dano: abrir o braço joga o topo do cajado para dentro (alavanca)
+    act("Death", [    # cai de costas
+        (1, rest),
+        (8, {W: (-10, 0, 0), WH: (0, 0, 0), O: (20, 0, 35), "spine": (20, 0, 0), "head": (16, 0, 0), "hips_loc": (0, 0.06, 0)}),
+        (18, {"root": (40, 0, 0), W: (-10, 0, 10), O: (-20, 0, 45), "spine": (14, 0, 0), "head": (12, 0, 0), "hips_loc": (0, 0.1, 0)}),
+        (26, {"root": (94, 0, 0), W: (-20, 0, 20), O: (-60, 0, 55), "spine": (6, 0, 0), "head": (16, 0, 0), "leg.L": (-25, 0, 0), "leg.R": (-30, 0, 0)}),
+        (32, {"root": (86, 0, 0), W: (-18, 0, 20), O: (-55, 0, 55), "spine": (10, 0, 0), "head": (12, 0, 0), "leg.L": (-18, 0, 0), "leg.R": (-22, 0, 0)}),
+        (44, {"root": (90, 0, 0), W: (-20, 0, 20), O: (-60, 0, 55), "spine": (8, 0, 0), "head": (14, 0, 0), "leg.L": (-20, 0, 0), "leg.R": (-25, 0, 0)})])
+    act("Victory", [  # salta erguendo o cajado em pé
+        (1, rest),
+        (8, {W: (-30, 0, 10), WH: (26, 0, 0), "spine": (-6, 0, 0), "hips_loc": (0, 0, -0.06)}),
+        (14, {W: (-80, 0, 8), WH: (70, 0, 0), O: (-30, 0, 30), "spine": (4, 0, 0), "head": (4, 0, 0), "hips_loc": (0, 0, 0.3), "cape": (-25, 0, 0)}),
+        (20, {W: (-75, 0, 8), WH: (66, 0, 0), O: (-20, 0, 20), "spine": (2, 0, 0), "hips_loc": (0, 0, 0.02), "cape": (-12, 0, 0)}),
+        (26, {W: (-80, 0, 8), WH: (70, 0, 0), O: (-30, 0, 30), "spine": (4, 0, 0), "head": (4, 0, 0), "hips_loc": (0, 0, 0.3), "cape": (-25, 0, 0)}),
+        (32, {W: (-75, 0, 8), WH: (66, 0, 0), O: (-20, 0, 20), "spine": (2, 0, 0), "hips_loc": (0, 0, 0.02), "cape": (-12, 0, 0)}),
+        (48, {**rest, "cape": (-6, 0, 0)})])
+
+def standard_actions(rig, weapon_arm="arm.R", base=None, shield_arm=False, grip="forward"):
     """As 6 ações padrão, com a mesma linguagem corporal em todos os personagens.
     Convenção (calibrada com renders laterais, personagem olhando para -Y):
       braços: X negativo = para a frente/para cima (-90 = horizontal à frente, -128 = máximo para a arma: acima disso ela cruza a cabeça grande), positivo = para trás
@@ -192,6 +241,8 @@ def standard_actions(rig, weapon_arm="arm.R", base=None, shield_arm=False):
       braços: Z positivo = abre para fora do corpo (os dois lados)
       hips_loc: Y negativo = avança, Z = sobe
     shield_arm=True: o outro braço segura um escudo e fica em guarda (pose base) em todas as ações
+    grip="up": arma em pé (cajado). O punho compensa a subida do braço para o cajado continuar em pé
+               e não cruzar a cabeça (punho = -0,85 × braço, medido com probe).
       armas ficam horizontais apontando para a frente na pose de descanso (postura de guarda)
     Quadros de impacto (a apresentação sincroniza o dano com eles): Attack = 17, Cast = 19.
     A arma nunca sobe acima de -110: com a cabeça grande do estilo chibi, acima disso ela cruza a cabeça.
@@ -201,6 +252,8 @@ def standard_actions(rig, weapon_arm="arm.R", base=None, shield_arm=False):
     WH = "hand." + W[-1]   # punho da arma: inclina a arma para cima nas poses erguidas (passa acima do ombro, não atrás da cabeça)
     B = base or {}
     def act(name, keys):
+        if grip == "up":
+            keys = [(f, {**p, WH: p.get(WH, (-0.85 * p[W][0], 0, 0))} if W in p else p) for f, p in keys]
         if shield_arm:   # o braço do escudo não acompanha os gestos: mantém a guarda, só abre um pouco
             g = B.get(O, (-40, 0, 12))
             keys = [(f, {k: (v if k != O else (g[0] - 6, 0, g[2] + 16)) for k, v in p.items()}) for f, p in keys]
@@ -287,6 +340,67 @@ def report_clipping(rig, gear, body, frames=None):
         seen.add((a, g, b)); print(f"CLIPPING: {a} quadro {f}: {g} atravessa {b}")
     if not problems: print("sem atravessamentos")
     return problems
+
+
+# ------------------------------------------------------------------ corpo base
+def humanoid(rig, P):
+    """Monta o corpo padrão chibi e prende aos ossos. P: dicionário de materiais e proporções.
+    Chaves: skin, cloth, cloth2, boots, belt, buckle, gloves (opcional), eye, brow, mouth (opcional)
+            belly (largura do tronco, padrão 0.42), head (escala da cabeça, padrão 1.0), robe (saia longa)
+            blush (material das bochechas), nose (bool), ears ('pontuda' | None)
+    Devolve a lista de nomes de peças do corpo (para a checagem de atravessamentos)."""
+    bw = P.get("belly", 0.42); hs = P.get("head", 1.0); H = 1.66
+    body = []
+    for sx, bone in ((1, "leg.L"), (-1, "leg.R")):
+        x = 0.16 * sx
+        attach(rig, bone, [
+            tube(f"perna{bone}", P.get("cloth2", P["cloth"]), (x, 0, 0.36), 0.12, 0.32),
+            blob(f"bota{bone}", P["boots"], (x, -0.06, 0.1), (0.15, 0.23, 0.12)),
+            ring(f"dobra{bone}", P["boots"], (x, 0, 0.21), 0.13, 0.03),
+        ])
+    hips = [blob("barriga", P["cloth"], (0, 0, 0.72), (bw, bw * 0.88, 0.4)),
+            tube("cinto", P["belt"], (0, 0, 0.58), bw + 0.01, 0.1, bevel=0.01),
+            block("fivela", P.get("buckle", P["belt"]), (0, -(bw * 0.88 + 0.01), 0.58), (0.09, 0.025, 0.07), bevel=0.012)]
+    if P.get("robe"):
+        hips.append(tube("saia", P["cloth"], (0, 0, 0.36), bw * 0.95, 0.5, r2=bw * P.get("flare", 1.2), verts=28))
+    attach(rig, "hips", hips)
+    body += ["barriga"] + (["saia"] if P.get("robe") else [])
+    attach(rig, "spine", [blob("peito", P["cloth"], (0, 0, 0.98), (bw * 0.95, bw * 0.8, 0.3))])
+    body.append("peito")
+    head = [blob("cabeca", P["skin"], (0, 0, H), (0.52 * hs, 0.5 * hs, 0.48 * hs))]
+    if P.get("nose", True):
+        head.append(blob("nariz", P["skin"], (0, -0.5 * hs, H - 0.05), (0.07, 0.06, 0.06)))
+    for sx in (1, -1):
+        head += [blob(f"olho{sx}", P["eye"], (0.18 * sx * hs, -0.45 * hs, H - 0.02), (0.075 * hs, 0.05, 0.11 * hs)),
+                 blob(f"brilho{sx}", mat("brilho", (1, 1, 1), rough=0.1, emit=(1, 1, 1)), (0.18 * sx * hs + 0.03, -0.49 * hs, H + 0.02), (0.024, 0.014, 0.024)),
+                 block(f"sobrancelha{sx}", P["brow"], (0.18 * sx * hs, -0.47 * hs, H + 0.13 * hs), (0.08, 0.025, 0.022), rot=(0, math.radians(-10 * sx), 0), bevel=0.008)]
+        if P.get("blush"):
+            head.append(blob(f"bochecha{sx}", P["blush"], (0.3 * sx * hs, -0.4 * hs, H - 0.14), (0.07, 0.03, 0.04)))
+        if P.get("ears") == "pontuda":
+            head.append(tube(f"orelha{sx}", P["skin"], (0.55 * sx * hs, 0, H + 0.02), 0.09, 0.45, rot=(0, math.radians(-75 * sx), 0), r2=0.0))
+    if P.get("mouth"):
+        head.append(blob("boca", P["mouth"], (0, -0.48 * hs, H - 0.17), (0.07, 0.02, 0.025)))
+    attach(rig, "head", head)
+    body.append("cabeca")
+    gl = P.get("gloves", P["skin"])
+    for sx, arm, hand in ((1, "arm.L", "hand.L"), (-1, "arm.R", "hand.R")):
+        attach(rig, arm, [tube(f"manga{arm}", P["cloth"], (0.47 * sx * bw / 0.42, 0, 0.93), 0.11, 0.3)])
+        attach(rig, hand, [blob(f"mao{hand}", gl, (0.5 * sx * bw / 0.42, -0.02, 0.7), (0.13, 0.13, 0.13))])
+    return body
+
+def staff_up(rig, hand_bone, x, wood_m, top_objs_fn, length=1.35, z0=0.62, tilt=26):
+    """Cajado em pé na mão, inclinado `tilt` graus para fora da cabeça. top_objs_fn(ponto_do_topo) cria o topo.
+    Use com standard_actions(grip="up")."""
+    side = -1 if hand_bone.endswith("R") else 1
+    t = math.radians(tilt)
+    d = Vector((side * math.sin(t), 0, math.cos(t)))
+    grip = Vector((x, -0.06, z0 + 0.1))
+    center = grip + d * (length / 2 - 0.2)
+    top = grip + d * (length - 0.2)
+    objs = [tube("cajado", wood_m, tuple(center), 0.04, length, rot=(0, side * t, 0))]
+    objs += top_objs_fn(tuple(top))
+    attach(rig, hand_bone, objs)
+    return [o.name for o in objs]
 
 # ------------------------------------------------------------------ exportação
 def export(path):
