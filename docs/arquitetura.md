@@ -90,6 +90,7 @@ O build também grava `www/config.js` com `window.MASMORRA_API = process.env.API
 | `?debug` | Expõe `window.__dbg` (`G`, `AB`, `SAVE()`, `kill`, `revive`, `fallenOf`) para testes automáticos |
 | `?shot=lineup` | Imagem com todos os heróis lado a lado |
 | `?shot=<chave>` | Retrato grande e transparente de um modelo (usado para gerar os ícones) |
+| `/v2/?grupo=N` | Prévia Godot: começa a vitrine no grupo N (0 heróis, 1 inimigos, 2 chefes) |
 
 ## Servidor
 
