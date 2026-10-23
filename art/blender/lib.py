@@ -46,10 +46,10 @@ def hexc(h):
     return tuple(lin)
 
 # ------------------------------------------------------------------ peças
-def _finish(obj, m, smooth=True, bevel=0.0, subdiv=0):
+def _finish(obj, m, smooth=True, bevel=0.0, subdiv=0, segs=3):
     if m: obj.data.materials.append(m)
     if bevel:
-        mod = obj.modifiers.new("bevel", 'BEVEL'); mod.width = bevel; mod.segments = 3; mod.limit_method = 'ANGLE'
+        mod = obj.modifiers.new("bevel", 'BEVEL'); mod.width = bevel; mod.segments = segs; mod.limit_method = 'ANGLE'
     if subdiv:
         mod = obj.modifiers.new("sub", 'SUBSURF'); mod.levels = subdiv; mod.render_levels = subdiv
     if smooth:
@@ -62,12 +62,12 @@ def blob(name, m, loc, scale, rot=(0, 0, 0), segs=24):
     o = bpy.context.object; o.name = name; o.scale = scale
     return _finish(o, m)
 
-def block(name, m, loc, scale, rot=(0, 0, 0), bevel=0.04):
-    """Bloco com cantos chanfrados (lâminas, placas, cintos)."""
+def block(name, m, loc, scale, rot=(0, 0, 0), bevel=0.04, segs=3):
+    """Bloco com cantos chanfrados (lâminas, placas, cintos). segs=1 dá um chanfro simples (pedras do cenário)."""
     bpy.ops.mesh.primitive_cube_add(location=loc, rotation=rot)
     o = bpy.context.object; o.name = name; o.scale = scale
     bpy.ops.object.transform_apply(scale=True)
-    return _finish(o, m, smooth=False, bevel=bevel)
+    return _finish(o, m, smooth=False, bevel=bevel, segs=segs)
 
 def tube(name, m, loc, radius, depth, rot=(0, 0, 0), verts=20, r2=None, bevel=0.0):
     """Cilindro ou cone (cabos, braços de armadura, chifres com r2=0)."""
@@ -78,8 +78,8 @@ def tube(name, m, loc, radius, depth, rot=(0, 0, 0), verts=20, r2=None, bevel=0.
     o = bpy.context.object; o.name = name
     return _finish(o, m, bevel=bevel)
 
-def ring(name, m, loc, major, minor, rot=(0, 0, 0)):
-    bpy.ops.mesh.primitive_torus_add(major_radius=major, minor_radius=minor, location=loc, rotation=rot, major_segments=32, minor_segments=10)
+def ring(name, m, loc, major, minor, rot=(0, 0, 0), segs=(32, 10)):
+    bpy.ops.mesh.primitive_torus_add(major_radius=major, minor_radius=minor, location=loc, rotation=rot, major_segments=segs[0], minor_segments=segs[1])
     o = bpy.context.object; o.name = name
     return _finish(o, m)
 

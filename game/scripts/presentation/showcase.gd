@@ -4,23 +4,27 @@ extends Node3D
 
 const Stylize := preload("res://scripts/presentation/stylize.gd")
 const Data := preload("res://scripts/core/data.gd")
+const DungeonRoom := preload("res://scripts/presentation/dungeon_room.gd")
 const ACTS := ["Attack", "Cast", "Victory", "Hit"]
 const GROUP_TIME := 14.0
 const GROUPS := [
-	{"title": "Heróis", "dir": "heroes", "keys": []},   # preenchido com a ordem dos dados
-	{"title": "Inimigos", "dir": "enemies", "keys": ["goblin", "arqueiro", "xama", "esqueleto", "magoEsq", "diabrete", "bruto"]},
-	{"title": "Chefes", "dir": "bosses", "keys": ["grakk", "lich", "gorruk", "ignar"]},
+	{"title": "Heróis", "dir": "heroes", "keys": [], "theme": "goblin"},   # keys vazio: ordem dos dados
+	{"title": "Inimigos", "dir": "enemies", "keys": ["goblin", "arqueiro", "xama", "esqueleto", "magoEsq", "diabrete", "bruto"], "theme": "cripta"},
+	{"title": "Chefes", "dir": "bosses", "keys": ["grakk", "lich", "gorruk", "ignar"], "theme": "forja", "boss": true},
 ]
 var group := 0
 var holder: Node3D
+var room: Node3D
+var fixed_theme := ""   # ?tema=<chave> fixa o cenário em todos os grupos
 
 var heroes: Array = []   # [{node, anim, key}]
 var label: Label
 var turn := 0
 
 func _ready() -> void:
-	_environment()
-	_floor()
+	_camera()
+	room = DungeonRoom.new()
+	add_child(room)
 	label = Label.new()
 	label.position = Vector2(24, 20)
 	label.add_theme_font_size_override("font_size", 22)
@@ -35,14 +39,15 @@ func _ready() -> void:
 	g.autostart = true
 	g.timeout.connect(func(): group = (group + 1) % GROUPS.size(); _spawn())
 	add_child(g)
-	group = _url_group()
+	var q := _url_param("grupo")
+	group = clampi(int(q), 0, GROUPS.size() - 1) if q.is_valid_int() else 0
+	fixed_theme = _url_param("tema")
 	_spawn()
 
-## No navegador, `?grupo=N` começa no grupo N (0 heróis, 1 inimigos, 2 chefes).
-func _url_group() -> int:
-	if not OS.has_feature("web"): return 0
-	var q := str(JavaScriptBridge.eval("new URLSearchParams(location.search).get('grupo') || ''", true))
-	return clampi(int(q), 0, GROUPS.size() - 1) if q.is_valid_int() else 0
+## Parâmetros da URL no navegador: `?grupo=N` (0 heróis, 1 inimigos, 2 chefes) e `?tema=<chave>`.
+func _url_param(key: String) -> String:
+	if not OS.has_feature("web"): return ""
+	return str(JavaScriptBridge.eval("new URLSearchParams(location.search).get('%s') || ''" % key, true))
 
 func _spawn() -> void:
 	if holder: holder.queue_free()
@@ -51,6 +56,7 @@ func _spawn() -> void:
 	heroes.clear()
 	turn = 0
 	var gdef: Dictionary = GROUPS[group]
+	room.build(fixed_theme if fixed_theme != "" else gdef["theme"], gdef.get("boss", false))
 	var keys: Array = Data.hero_order() if gdef["keys"].is_empty() else gdef["keys"]
 	var per_row := 4
 	var spacing := 2.3 if gdef["dir"] != "bosses" else 2.9
@@ -86,56 +92,21 @@ func _next() -> void:
 	var d: Dictionary = Data.unit_def(h["key"])
 	label.text = "%s · %s · %s   (prévia Godot)" % [GROUPS[group]["title"], d.get("name", h["key"]), a]
 
-func _environment() -> void:
-	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color("1b120f")
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("6b5a80")
-	env.ambient_light_energy = 0.5
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	var we := WorldEnvironment.new()
-	we.environment = env
-	add_child(we)
-	var key := DirectionalLight3D.new()
-	key.light_color = Color("ffd9a8")
-	key.light_energy = 1.15
-	key.shadow_enabled = true
-	key.rotation_degrees = Vector3(-55, -35, 0)
-	add_child(key)
-	var fill := DirectionalLight3D.new()
-	fill.light_color = Color("8a7cff")
-	fill.light_energy = 0.3
-	fill.rotation_degrees = Vector3(-25, 150, 0)
-	add_child(fill)
+func _camera() -> void:
 	var cam := Camera3D.new()
 	cam.fov = 34
-	cam.position = Vector3(0.6, 6.2, 11.5)
-	cam.look_at_from_position(cam.position, Vector3(0, 0.9, 0.2))
+	cam.position = Vector3(0.6, 5.2, 10.8)
+	cam.look_at_from_position(cam.position, Vector3(0, 1.4, -0.9))
 	add_child(cam)
+	get_viewport().size_changed.connect(_fit_camera.bind(cam))
+	_fit_camera(cam)
 
-func _floor() -> void:
-	var tiles := MultiMeshInstance3D.new()
-	var mm := MultiMesh.new()
-	var box := BoxMesh.new()
-	box.size = Vector3(0.96, 0.3, 0.96)
-	var m := StandardMaterial3D.new()
-	m.albedo_color = Color("2e2733")
-	m.roughness = 0.95
-	m.vertex_color_use_as_albedo = true
-	box.material = m
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.use_colors = true
-	mm.mesh = box
-	mm.instance_count = 256
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 3
-	var i := 0
-	for x in range(-8, 8):
-		for z in range(-8, 8):
-			mm.set_instance_transform(i, Transform3D(Basis(), Vector3(x + 0.5, -0.15 + rng.randf_range(-0.02, 0.02), z + 0.5)))
-			var v := rng.randf_range(0.8, 1.1)
-			mm.set_instance_color(i, Color(v, v, v))
-			i += 1
-	tiles.multimesh = mm
-	add_child(tiles)
+## Em tela deitada fixa o campo de visão vertical; em pé, o horizontal (todos continuam no quadro).
+func _fit_camera(cam: Camera3D) -> void:
+	var s := get_viewport().get_visible_rect().size
+	if s.x >= s.y:
+		cam.keep_aspect = Camera3D.KEEP_HEIGHT
+		cam.fov = 34
+	else:
+		cam.keep_aspect = Camera3D.KEEP_WIDTH
+		cam.fov = 50

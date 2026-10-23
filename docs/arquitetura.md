@@ -27,6 +27,8 @@ proxy reverso já existente na VPS (Caddy, porta 443)   ← opcional; sem ele, a
 | `deploy/` | `compose.yml`, `compose.proxy.yml` e `nginx.conf` da stack no servidor. |
 | `android/` | Projeto Capacitor do app Android. |
 | `docs/` | Esta documentação. |
+| `game/` | Projeto Godot 4.6 (versão nova, publicada em `/v2/`). Ver "Versão Godot e arte". |
+| `art/blender/` | Scripts Python que geram no Blender os personagens e o kit da masmorra (`.glb`). |
 
 ## Cliente (o jogo)
 
@@ -91,6 +93,20 @@ O build também grava `www/config.js` com `window.MASMORRA_API = process.env.API
 | `?shot=lineup` | Imagem com todos os heróis lado a lado |
 | `?shot=<chave>` | Retrato grande e transparente de um modelo (usado para gerar os ícones) |
 | `/v2/?grupo=N` | Prévia Godot: começa a vitrine no grupo N (0 heróis, 1 inimigos, 2 chefes) |
+| `/v2/?tema=<chave>` | Prévia Godot: fixa o cenário (`goblin`, `cripta`, `lodo`, `forja` ou `arena`) em todos os grupos |
+
+### Versão Godot e arte
+
+- **Atalhos:** `tools/godot.sh sync | test | balance | export | editor` (Godot em `GODOT_BIN`, padrão `~/opt`).
+- **Núcleo sem gráficos:** `game/scripts/core/` (batalha, habilidades, IA, progressão), testado por `game/tests/run.gd`.
+- **Apresentação:** `game/scripts/presentation/`
+  - `stylize.gd`: troca os materiais do `.glb` por toon + contorno; tinge materiais pelo prefixo do nome (usado nos temas do cenário).
+  - `dungeon_room.gd`: monta a sala com o kit (piso em MultiMesh, paredes, arco gradeado, pilares, tochas, estandartes, objetos por tema, trono na sala do chefe), luzes (no máximo 6, por causa do renderizador Compatibility), névoa e poeira. Cores de cada tema em `THEMES`, objetos em `PROPS`.
+  - `flame.gd`: chama de tocha e braseiro (cones aditivos, brilho, faíscas e luz tremulando).
+  - `showcase.gd`: a vitrine atual de `/v2/`.
+- **Personagens:** `blender -b -P art/blender/heroes/<chave>.py` (também `enemies/` e `bosses/`) gera `game/assets/characters/<pasta>/<chave>.glb` com esqueleto e as ações Idle, Attack, Cast, Hit, Death e Victory. A base fica em `art/blender/lib.py`.
+- **Kit da masmorra:** `blender -b -P art/blender/dungeon/kit.py [-- peça ...]` gera `game/assets/dungeon/<peça>.glb` (19 peças, uma malha cada, origem no chão). Materiais com prefixo `piso`, `parede`, `estandarte`, `brasa` e `cristal` são tingidos pelo tema no Godot; os demais (ferro, ouro, madeira, osso, barro) ficam fixos. Rode no máximo 3 Blenders em paralelo.
+- Toda a arte é autoral, gerada por esses scripts; não há assets de terceiros.
 
 ## Servidor
 
