@@ -1,10 +1,18 @@
 extends Node3D
-## Vitrine dos heróis (prévia da versão Godot): os 8 modelos do Blender com o visual estilizado,
-## em fila, alternando as animações padrão. Toque/clique num herói para ver o próximo golpe dele.
+## Vitrine (prévia da versão Godot): heróis, inimigos e chefes modelados no Blender, com o visual
+## estilizado, alternando as animações padrão. O grupo exibido troca a cada GROUP_TIME segundos.
 
 const Stylize := preload("res://scripts/presentation/stylize.gd")
 const Data := preload("res://scripts/core/data.gd")
 const ACTS := ["Attack", "Cast", "Victory", "Hit"]
+const GROUP_TIME := 14.0
+const GROUPS := [
+	{"title": "Heróis", "dir": "heroes", "keys": []},   # preenchido com a ordem dos dados
+	{"title": "Inimigos", "dir": "enemies", "keys": ["goblin", "arqueiro", "xama", "esqueleto", "magoEsq", "diabrete", "bruto"]},
+	{"title": "Chefes", "dir": "bosses", "keys": ["grakk", "lich", "gorruk", "ignar"]},
+]
+var group := 0
+var holder: Node3D
 
 var heroes: Array = []   # [{node, anim, key}]
 var label: Label
@@ -13,26 +21,6 @@ var turn := 0
 func _ready() -> void:
 	_environment()
 	_floor()
-	var order: Array = Data.hero_order()
-	for i in order.size():
-		var key: String = order[i]
-		var path := "res://assets/characters/heroes/%s.glb" % key
-		if not ResourceLoader.exists(path): continue
-		var n: Node3D = load(path).instantiate()
-		add_child(n)
-		var row := i / 4
-		var col := i % 4
-		n.position = Vector3((col - 1.5) * 2.3 + row * 1.15, 0, row * 2.2 - 1.4)
-		n.rotation.y = deg_to_rad(-12 + (col - 1.5) * 6)
-		Stylize.apply(n)
-		var anim: AnimationPlayer = n.find_children("*", "AnimationPlayer", true, false)[0]
-		for loop in ["Idle", "Victory"]:
-			if anim.has_animation(loop): anim.get_animation(loop).loop_mode = Animation.LOOP_LINEAR
-		anim.playback_default_blend_time = 0.22
-		anim.play("Idle")
-		anim.seek(randf() * 1.5)
-		anim.animation_finished.connect(func(_a): anim.play("Idle"))
-		heroes.append({"node": n, "anim": anim, "key": key})
 	label = Label.new()
 	label.position = Vector2(24, 20)
 	label.add_theme_font_size_override("font_size", 22)
@@ -42,6 +30,51 @@ func _ready() -> void:
 	t.autostart = true
 	t.timeout.connect(_next)
 	add_child(t)
+	var g := Timer.new()
+	g.wait_time = GROUP_TIME
+	g.autostart = true
+	g.timeout.connect(func(): group = (group + 1) % GROUPS.size(); _spawn())
+	add_child(g)
+	group = _url_group()
+	_spawn()
+
+## No navegador, `?grupo=N` começa no grupo N (0 heróis, 1 inimigos, 2 chefes).
+func _url_group() -> int:
+	if not OS.has_feature("web"): return 0
+	var q := str(JavaScriptBridge.eval("new URLSearchParams(location.search).get('grupo') || ''", true))
+	return clampi(int(q), 0, GROUPS.size() - 1) if q.is_valid_int() else 0
+
+func _spawn() -> void:
+	if holder: holder.queue_free()
+	holder = Node3D.new()
+	add_child(holder)
+	heroes.clear()
+	turn = 0
+	var gdef: Dictionary = GROUPS[group]
+	var keys: Array = Data.hero_order() if gdef["keys"].is_empty() else gdef["keys"]
+	var per_row := 4
+	var spacing := 2.3 if gdef["dir"] != "bosses" else 2.9
+	for i in keys.size():
+		var key: String = keys[i]
+		var path := "res://assets/characters/%s/%s.glb" % [gdef["dir"], key]
+		if not ResourceLoader.exists(path): continue
+		var n: Node3D = load(path).instantiate()
+		holder.add_child(n)
+		var row := i / per_row
+		var col := i % per_row
+		var cols: int = mini(per_row, keys.size() - row * per_row)
+		n.position = Vector3((col - (cols - 1) / 2.0) * spacing + row * 1.15, 0, row * 2.2 - 1.4)
+		n.rotation.y = deg_to_rad(-12 + (col - 1.5) * 6)
+		if gdef["dir"] == "bosses": n.scale = Vector3.ONE * 1.25
+		Stylize.apply(n)
+		var anim: AnimationPlayer = n.find_children("*", "AnimationPlayer", true, false)[0]
+		for loop in ["Idle", "Victory"]:
+			if anim.has_animation(loop): anim.get_animation(loop).loop_mode = Animation.LOOP_LINEAR
+		anim.playback_default_blend_time = 0.22
+		anim.play("Idle")
+		anim.seek(randf() * 1.5)
+		anim.animation_finished.connect(func(_a): anim.play("Idle"))
+		heroes.append({"node": n, "anim": anim, "key": key})
 	_next()
 
 func _next() -> void:
@@ -50,7 +83,8 @@ func _next() -> void:
 	var a: String = ACTS[(turn / heroes.size()) % ACTS.size()]
 	turn += 1
 	h["anim"].play(a)
-	label.text = "%s · %s   (prévia Godot %s)" % [Data.heroes()[h["key"]]["name"], a, Engine.get_version_info()["string"]]
+	var d: Dictionary = Data.unit_def(h["key"])
+	label.text = "%s · %s · %s   (prévia Godot)" % [GROUPS[group]["title"], d.get("name", h["key"]), a]
 
 func _environment() -> void:
 	var env := Environment.new()

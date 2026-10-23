@@ -483,6 +483,42 @@ def staff_up(rig, hand_bone, x, wood_m, top_objs_fn, length=1.35, z0=0.62, tilt=
     attach(rig, hand_bone, objs)
     return [o.name for o in objs]
 
+
+# ------------------------------------------------------------------ famílias de inimigos
+def goblin_face(rig, skin, brow, hs=1.0, tusks=None):
+    """Nariz comprido, sobrancelhas franzidas e (opcional) presas: o rosto de goblin."""
+    H = 1.66
+    parts = [blob("narigao", skin, (0, -0.52 * hs, H - 0.06), (0.1, 0.16, 0.09)),
+             blob("verruga", skin, (0.05, -0.62 * hs, H - 0.02), (0.025, 0.025, 0.025))]
+    for sx in (1, -1):
+        parts.append(block(f"carranca{sx}", brow, (0.17 * sx * hs, -0.47 * hs, H + 0.1), (0.1, 0.03, 0.03), rot=(0, math.radians(22 * sx), 0), bevel=0.008))
+        if tusks:
+            parts.append(tube(f"presa{sx}", tusks, (0.12 * sx * hs, -0.42 * hs, H - 0.24), 0.035, 0.12, rot=(math.radians(15), 0, 0), r2=0.0))
+    attach(rig, "head", parts)
+    return parts
+
+def skeleton_details(rig, bone_m, dark_m, glow_m, hs=1.0):
+    """Órbitas escuras com brilho, mandíbula, costelas e coluna: o que separa o esqueleto do corpo base."""
+    H = 1.66
+    head = [blob("mandibula", bone_m, (0, -0.24 * hs, H - 0.34), (0.32, 0.26, 0.12)),
+            block("dentes", mat("dente", (0.95, 0.92, 0.85), rough=0.5), (0, -0.44 * hs, H - 0.26), (0.18, 0.02, 0.035), bevel=0.01),
+            blob("buraco_nariz", dark_m, (0, -0.5 * hs, H - 0.1), (0.05, 0.03, 0.06))]
+    for sx in (1, -1):
+        head += [blob(f"orbita{sx}", dark_m, (0.18 * sx * hs, -0.43 * hs, H + 0.0), (0.12, 0.06, 0.13)),
+                 blob(f"brasa_olho{sx}", glow_m, (0.18 * sx * hs, -0.47 * hs, H + 0.0), (0.045, 0.02, 0.045))]
+    attach(rig, "head", head)
+    ribs = [tube(f"costela{i}", bone_m, (0, -0.02, 0.86 + i * 0.08), 0.3 - abs(i - 1.5) * 0.03, 0.035) for i in range(4)]
+    ribs.append(tube("coluna", bone_m, (0, 0.12, 0.95), 0.04, 0.5))
+    attach(rig, "spine", ribs)
+
+def rock_body(rig, rock_m, rock2_m, lava_m, belly=0.5):
+    """Corpo de pedra facetada com rachaduras de lava (golens e brutos da forja)."""
+    attach(rig, "spine", [blob("peito_pedra", rock_m, (0, 0, 1.0), (belly, belly * 0.8, 0.36), segs=8),
+                          blob("racha1", lava_m, (0.1, -belly * 0.78, 0.98), (0.04, 0.02, 0.16), rot=(0, math.radians(20), 0)),
+                          blob("racha2", lava_m, (-0.14, -belly * 0.76, 1.05), (0.03, 0.02, 0.1), rot=(0, math.radians(-30), 0)),
+                          blob("ombroE", rock2_m, (0.5, 0, 1.1), (0.26, 0.24, 0.22), segs=7),
+                          blob("ombroD", rock2_m, (-0.5, 0, 1.1), (0.26, 0.24, 0.22), segs=7)])
+
 # ------------------------------------------------------------------ exportação
 def export(path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
