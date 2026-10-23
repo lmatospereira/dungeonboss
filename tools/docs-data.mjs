@@ -5,7 +5,7 @@ import {readFileSync, writeFileSync} from 'node:fs';
 import {join, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const D = Object.fromEntries(['heroes', 'enemies', 'abilities', 'dungeons', 'rules', 'progression']
+const D = Object.fromEntries(['heroes', 'enemies', 'abilities', 'dungeons', 'rules', 'progression', 'campaign']
   .map(f => [f, JSON.parse(readFileSync(join(root, 'data', f + '.json'), 'utf8'))]));
 const H = D.heroes.heroes, A = D.abilities.abilities, R = D.rules.combat, P = D.progression, EL = D.rules.elements;
 const pct = v => `${Math.round(v * 100)}%`;
@@ -18,7 +18,18 @@ const unlock = Object.fromEntries(D.dungeons.dungeons.filter(d => d.unlockHero).
 const bossName = k => D.enemies.bosses[k].short || D.enemies.bosses[k].name;
 const bonus = w => [w.hp && `+${pct(w.hp)} vida`, w.atk && `+${pct(w.atk)} ataque`, w.crit && `+${pct(w.crit)} crítico`, w.spd && `+${w.spd} velocidade`, w.dr && `+${pct(w.dr)} defesa`].filter(Boolean).join(', ');
 
+const C = D.campaign, dun = id => D.dungeons.dungeons.find(d => d.id === id);
+const tok = t => Object.entries(t || {}).map(([k, n]) => `${n} fichas de ${H[k].name}`);
+
 const sections = {
+  campanha_inicio: () => [`- **Começo:** ${C.start.heroes.map(k => H[k].name).join(', ')}, ${C.start.gold} de ouro e ${C.start.gems} diamantes.`,
+    `- **Liberar um herói:** ${C.unlock.tokens} fichas e ${C.unlock.gold} de ouro. Ficha de herói que você já tem vira ${C.surplusTokenGold} de ouro.`,
+    `- **Loja:** 1 ficha de herói bloqueado por ${C.shop.tokenGems} diamantes; ${C.shop.goldPack.gold} de ouro por ${C.shop.goldPack.gems} diamantes.`,
+    `- **3 estrelas pela primeira vez numa fase:** +${C.stars.firstThreeGems} diamantes.`],
+  campanha: () => ['| Fase | Masmorra | Nível | Salas | Primeira vitória | A cada vitória |', '|---|---|---|---|---|---|',
+    ...C.chapters.flatMap(ch => ch.stages.map(st => { const f = st.first || {}, d = st.drop;
+      const first = [f.gems && `${f.gems} diamantes`, f.crystals && `${f.crystals} cristais`, ...tok(f.tokens)].filter(Boolean).join(', ');
+      return `| ${st.id} | ${dun(ch.dungeon).name} | ${st.lvl} | ${st.rooms.length}${st.boss ? ' + chefe ' + bossName(dun(ch.dungeon).boss) : ''} | ${first || '—'} | ${d ? `${pct(d.chance)} de chance de ${d.min}–${d.max} fichas de ${H[d.hero].name}` : '—'} |`; }))],
   herois: () => ['| Herói | Tipo · função | Elemento | Vida | Ataque | Velocidade | Crítico | Defesa | Como conseguir |', '|---|---|---|---|---|---|---|---|---|',
     ...D.heroes.order.map(k => { const h = H[k]; return `| ${h.name} | ${D.heroes.types[h.type].n} · ${h.role} | ${EL[h.el].name} | ${h.hp} | ${h.atk} | ${h.spd} | ${pct(h.crit ?? R.critDefault ?? 0.1)} | ${pct(h.dr || 0)} | ${D.heroes.starters.includes(k) ? 'Inicial' : `Vencer ${bossName(unlock[k])}`} |`; })],
   poderes: () => ['| Herói | Básico | Habilidade 1 | Habilidade 2 | 4º poder (evolução 2) |', '|---|---|---|---|---|',

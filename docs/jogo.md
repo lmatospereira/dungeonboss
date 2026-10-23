@@ -15,6 +15,7 @@ O jogador monta uma equipe de 4 heróis, atravessa masmorras com 2 salas e um ch
 - [Masmorras e chefes](#masmorras-e-chefes)
 - [Invasão (PvP assíncrono)](#invasão-pvp-assíncrono)
 - [Recompensas](#recompensas)
+- [Campanha da versão Godot](#campanha-da-versão-godot-fichas-ouro-e-diamantes)
 - [Contas e salvamento](#contas-e-salvamento)
 
 ## Telas
@@ -185,6 +186,43 @@ Cada masmorra tem 2 salas de inimigos e um chefe. Vencer a anterior libera a pr�
 | Derrota na Invasão | 15 | 15 | — |
 
 **Estrelas:** 3 com os 4 heróis de pé no fim, 2 com pelo menos 2 de pé, e 1 com um só.
+
+## Campanha da versão Godot (fichas, ouro e diamantes)
+
+A versão Godot (`/v2/`) segue a linha do Dungeon Boss: o jogo começa com 3 heróis e os outros são liberados juntando **fichas** nas fases. A versão three.js da raiz continua com a regra antiga (6 iniciais e recrutamento pelo chefe) até a troca. Os números ficam em `data/campaign.json`.
+
+<!-- gerado:campanha_inicio -->
+- **Começo:** Brom, Lyra, Alva, 200 de ouro e 50 diamantes.
+- **Liberar um herói:** 10 fichas e 100 de ouro. Ficha de herói que você já tem vira 25 de ouro.
+- **Loja:** 1 ficha de herói bloqueado por 20 diamantes; 500 de ouro por 40 diamantes.
+- **3 estrelas pela primeira vez numa fase:** +5 diamantes.
+<!-- /gerado:campanha_inicio -->
+
+- **Fases:** cada masmorra virou um capítulo com 3 fases; a última tem o chefe. Vencer uma fase abre a próxima.
+- **Moedas:**
+  - **ouro:** vem das salas (como na tabela de recompensas) e da primeira vitória; serve para treinar, evoluir e liberar heróis;
+  - **diamantes:** vêm da primeira vitória de cada fase e das 3 estrelas; servem para comprar fichas e ouro na loja;
+  - **cristais:** vêm dos chefes; servem para evoluir.
+- **Estrelas:** 3 com todos os heróis de pé, 2 com pelo menos metade e 1 com menos.
+- **Derrota:** paga o ouro e a experiência das salas vencidas, sem fichas nem diamantes.
+- `tools/godot.sh campaign` simula a chance de vitória de cada fase no AUTO.
+
+<!-- gerado:campanha -->
+| Fase | Masmorra | Nível | Salas | Primeira vitória | A cada vitória |
+|---|---|---|---|---|---|
+| 1-1 | Covil dos Goblins | 1 | 2 | 10 diamantes, 5 fichas de Kai | 50% de chance de 1–2 fichas de Kai |
+| 1-2 | Covil dos Goblins | 1 | 2 | 10 diamantes, 5 fichas de Kai | 50% de chance de 1–2 fichas de Kai |
+| 1-3 | Covil dos Goblins | 2 | 1 + chefe Grakk | 30 diamantes, 3 cristais, 4 fichas de Mira | 40% de chance de 1–2 fichas de Mira |
+| 2-1 | Cripta Esquecida | 3 | 2 | 10 diamantes, 3 fichas de Mira | 50% de chance de 1–2 fichas de Mira |
+| 2-2 | Cripta Esquecida | 4 | 2 | 10 diamantes, 3 fichas de Mira | 40% de chance de 1–2 fichas de Rook |
+| 2-3 | Cripta Esquecida | 3 | 1 + chefe Morvhal | 30 diamantes, 3 cristais, 5 fichas de Rook | 40% de chance de 1–2 fichas de Rook |
+| 3-1 | Pântano do Lodo | 6 | 2 | 10 diamantes, 5 fichas de Rook | 40% de chance de 1–2 fichas de Vex |
+| 3-2 | Pântano do Lodo | 7 | 2 | 10 diamantes, 5 fichas de Vex | 50% de chance de 1–2 fichas de Vex |
+| 3-3 | Pântano do Lodo | 8 | 1 + chefe Gorruk | 30 diamantes, 3 cristais, 5 fichas de Vex | 40% de chance de 1–2 fichas de Nyx |
+| 4-1 | Forja Infernal | 10 | 2 | 10 diamantes, 4 fichas de Nyx | 50% de chance de 1–2 fichas de Nyx |
+| 4-2 | Forja Infernal | 11 | 2 | 10 diamantes, 3 fichas de Nyx | 50% de chance de 1–2 fichas de Nyx |
+| 4-3 | Forja Infernal | 12 | 1 + chefe Ignar | 50 diamantes, 3 cristais, 3 fichas de Nyx | 30% de chance de 1–2 fichas de Kai |
+<!-- /gerado:campanha -->
 
 ## Contas e salvamento
 

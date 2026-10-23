@@ -2,7 +2,7 @@ extends RefCounted
 ## Acesso aos dados do jogo (res://data/*.json, copiados de ../data pelo tools/godot.sh).
 ## Fonte única dos números: nunca escreva valores de balanceamento nos scripts.
 
-const FILES := ["heroes", "enemies", "abilities", "dungeons", "rules", "progression"]
+const FILES := ["heroes", "enemies", "abilities", "dungeons", "rules", "progression", "campaign"]
 static var _cache: Dictionary = {}
 
 static func all() -> Dictionary:
@@ -32,6 +32,7 @@ static func rules() -> Dictionary: return all()["rules"]["combat"]
 static func elements() -> Dictionary: return all()["rules"]["elements"]
 static func progression() -> Dictionary: return all()["progression"]
 static func dungeons() -> Array: return all()["dungeons"]["dungeons"]
+static func campaign() -> Dictionary: return all()["campaign"]
 
 static func is_hero(key: String) -> bool: return heroes().has(key)
 

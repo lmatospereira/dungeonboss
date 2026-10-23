@@ -1,0 +1,134 @@
+{
+  "_doc": "Campanha da versão Godot: começa com 3 heróis e libera os outros juntando fichas (tokens) nas fases. Cada capítulo usa uma masmorra de dungeons.json (nome, tema, chefe); as fases trazem as salas, o nível dos inimigos e as recompensas. first = primeira vitória; drop = chance a cada vitória (inclusive repetidas). Ouro e experiência das salas seguem progression.json (rewards). A versão three.js ainda usa heroes.starters e dungeons.unlockHero.",
+  "start": {
+    "heroes": ["brom", "lyra", "alva"],
+    "gold": 200,
+    "gems": 50,
+    "crystals": 0
+  },
+  "unlock": {
+    "tokens": 10,
+    "gold": 100
+  },
+  "surplusTokenGold": 25,
+  "stars": {
+    "firstThreeGems": 5
+  },
+  "shop": {
+    "tokenGems": 20,
+    "goldPack": {
+      "gems": 40,
+      "gold": 500
+    }
+  },
+  "chapters": [
+    {
+      "dungeon": "d1",
+      "stages": [
+        {
+          "id": "1-1",
+          "lvl": 1,
+          "rooms": [["goblin", "goblin"], ["goblin", "arqueiro"]],
+          "first": {"gems": 10, "tokens": {"kai": 5}},
+          "drop": {"hero": "kai", "chance": 0.5, "min": 1, "max": 2}
+        },
+        {
+          "id": "1-2",
+          "lvl": 1,
+          "rooms": [["goblin", "arqueiro", "goblin"], ["goblin", "arqueiro", "xama"]],
+          "first": {"gems": 10, "tokens": {"kai": 5}},
+          "drop": {"hero": "kai", "chance": 0.5, "min": 1, "max": 2}
+        },
+        {
+          "id": "1-3",
+          "lvl": 2,
+          "rooms": [["goblin", "arqueiro", "xama"]],
+          "boss": true,
+          "first": {"gems": 30, "crystals": 3, "tokens": {"mira": 4}},
+          "drop": {"hero": "mira", "chance": 0.4, "min": 1, "max": 2}
+        }
+      ]
+    },
+    {
+      "dungeon": "d2",
+      "stages": [
+        {
+          "id": "2-1",
+          "lvl": 3,
+          "rooms": [["esqueleto", "magoEsq"], ["esqueleto", "magoEsq", "esqueleto"]],
+          "first": {"gems": 10, "tokens": {"mira": 3}},
+          "drop": {"hero": "mira", "chance": 0.5, "min": 1, "max": 2}
+        },
+        {
+          "id": "2-2",
+          "lvl": 4,
+          "rooms": [["esqueleto", "magoEsq", "esqueleto"], ["esqueleto", "magoEsq", "magoEsq"]],
+          "first": {"gems": 10, "tokens": {"mira": 3}},
+          "drop": {"hero": "rook", "chance": 0.4, "min": 1, "max": 2}
+        },
+        {
+          "id": "2-3",
+          "lvl": 3,
+          "rooms": [["esqueleto", "magoEsq", "magoEsq"]],
+          "boss": true,
+          "first": {"gems": 30, "crystals": 3, "tokens": {"rook": 5}},
+          "drop": {"hero": "rook", "chance": 0.4, "min": 1, "max": 2}
+        }
+      ]
+    },
+    {
+      "dungeon": "d3",
+      "stages": [
+        {
+          "id": "3-1",
+          "lvl": 6,
+          "rooms": [["xama", "goblin", "xama"], ["goblin", "xama", "arqueiro"]],
+          "first": {"gems": 10, "tokens": {"rook": 5}},
+          "drop": {"hero": "vex", "chance": 0.4, "min": 1, "max": 2}
+        },
+        {
+          "id": "3-2",
+          "lvl": 7,
+          "rooms": [["xama", "goblin", "xama"], ["goblin", "xama", "arqueiro", "goblin"]],
+          "first": {"gems": 10, "tokens": {"vex": 5}},
+          "drop": {"hero": "vex", "chance": 0.5, "min": 1, "max": 2}
+        },
+        {
+          "id": "3-3",
+          "lvl": 8,
+          "rooms": [["goblin", "xama", "arqueiro", "goblin"]],
+          "boss": true,
+          "first": {"gems": 30, "crystals": 3, "tokens": {"vex": 5}},
+          "drop": {"hero": "nyx", "chance": 0.4, "min": 1, "max": 2}
+        }
+      ]
+    },
+    {
+      "dungeon": "d4",
+      "stages": [
+        {
+          "id": "4-1",
+          "lvl": 10,
+          "rooms": [["diabrete", "bruto"], ["diabrete", "bruto", "diabrete"]],
+          "first": {"gems": 10, "tokens": {"nyx": 4}},
+          "drop": {"hero": "nyx", "chance": 0.5, "min": 1, "max": 2}
+        },
+        {
+          "id": "4-2",
+          "lvl": 11,
+          "rooms": [["diabrete", "bruto", "diabrete"], ["bruto", "diabrete", "bruto", "diabrete"]],
+          "first": {"gems": 10, "tokens": {"nyx": 3}},
+          "drop": {"hero": "nyx", "chance": 0.5, "min": 1, "max": 2}
+        },
+        {
+          "id": "4-3",
+          "lvl": 12,
+          "rooms": [["bruto", "diabrete", "bruto", "diabrete"]],
+          "boss": true,
+          "first": {"gems": 50, "crystals": 3, "tokens": {"nyx": 3}},
+          "drop": {"hero": "kai", "chance": 0.3, "min": 1, "max": 2}
+        }
+      ]
+    }
+  ]
+}

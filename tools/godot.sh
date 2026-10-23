@@ -3,6 +3,7 @@
 #   tools/godot.sh sync      copia data/*.json para game/data (rode antes de abrir o editor)
 #   tools/godot.sh test      roda os testes headless do núcleo de combate
 #   tools/godot.sh balance [args]   roda o simulador de balanceamento
+#   tools/godot.sh campaign  chance de vitória de cada fase da campanha (AUTO)
 #   tools/godot.sh export    exporta a versão web para game/build/web
 #   tools/godot.sh editor    abre o editor
 # GODOT_BIN e BLENDER_BIN podem ser definidos no ambiente; o padrão é ~/opt.
@@ -17,8 +18,9 @@ case "$cmd" in
   sync) sync_data ;;
   test) sync_data; import_once; "$GODOT" --headless --path "$ROOT/game" -s res://tests/run.gd -- "$@" ;;
   balance) sync_data; import_once; "$GODOT" --headless --path "$ROOT/game" -s res://tools/balance.gd -- "$@" ;;
+  campaign) sync_data; import_once; "$GODOT" --headless --path "$ROOT/game" -s res://tools/campaign_sim.gd -- "$@" ;;
   export) sync_data; "$GODOT" --headless --path "$ROOT/game" --import >/dev/null 2>&1 || true
           mkdir -p "$ROOT/game/build/web"; "$GODOT" --headless --path "$ROOT/game" --export-release "Web" "$ROOT/game/build/web/index.html" ;;
   editor) sync_data; "$GODOT" --path "$ROOT/game" -e ;;
-  *) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//' ;;
+  *) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//' ;;
 esac
