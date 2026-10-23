@@ -16,7 +16,7 @@ const TEAM_SIZE := 4
 static func create() -> Dictionary:
 	var s: Dictionary = Campaign.conf()["start"]
 	var p := {"v": VERSION, "gold": int(s["gold"]), "gems": int(s["gems"]), "crystals": int(s["crystals"]),
-		"heroes": {}, "tokens": {}, "stages": {}, "team": []}
+		"heroes": {}, "tokens": {}, "stages": {}, "team": [], "settings": {"auto": false, "fast": false}}
 	for k in s["heroes"]:
 		p["heroes"][k] = {"lvl": 1, "xp": 0, "evo": 1}
 		p["team"].append(k)
@@ -143,6 +143,15 @@ static func stars_for(alive: int, team_size: int) -> int:
 	if alive * 2 >= team_size: return 2
 	return 1
 
+## Ouro e experiência (por herói) de limpar a sala i da fase; a sala do chefe vale mais.
+static func room_reward(st: Dictionary, i: int) -> Dictionary:
+	var rw: Dictionary = Data.progression()["rewards"]
+	var rooms := Campaign.rooms(st)
+	var boss: bool = st.get("boss", false) and i == rooms.size() - 1
+	var lvl: int = rooms[i][0]["lvl"]
+	return {"xp": roundi((rw["roomXp"]["base"] + rw["roomXp"]["perLevel"] * lvl) * (rw["bossXpMult"] if boss else 1)),
+		"gold": roundi((rw["roomGold"]["base"] + rw["roomGold"]["perLevel"] * lvl) * (rw["bossGoldMult"] if boss else 1))}
+
 ## Fim de uma fase: aplica e devolve as recompensas.
 ## {win, first, stars, gold, gems, crystals, xp, tokens: {k: n}, token_gold, levelups: {k: n}}
 static func finish_stage(p: Dictionary, id: String, win: bool, rooms_cleared: int, alive: int, team: Array, rng: RandomNumberGenerator) -> Dictionary:
@@ -151,10 +160,9 @@ static func finish_stage(p: Dictionary, id: String, win: bool, rooms_cleared: in
 	var rooms := Campaign.rooms(st)
 	var res := {"win": win, "first": false, "stars": 0, "gold": 0, "gems": 0, "crystals": 0, "xp": 0, "tokens": {}, "token_gold": 0, "levelups": {}}
 	for i in mini(rooms_cleared, rooms.size()):
-		var boss: bool = st.get("boss", false) and i == rooms.size() - 1
-		var lvl: int = rooms[i][0]["lvl"]
-		res["xp"] += roundi((rw["roomXp"]["base"] + rw["roomXp"]["perLevel"] * lvl) * (rw["bossXpMult"] if boss else 1))
-		res["gold"] += roundi((rw["roomGold"]["base"] + rw["roomGold"]["perLevel"] * lvl) * (rw["bossGoldMult"] if boss else 1))
+		var rr := room_reward(st, i)
+		res["xp"] += rr["xp"]
+		res["gold"] += rr["gold"]
 	if win:
 		var rec: Dictionary = p["stages"].get(id, {"stars": 0, "clears": 0})
 		res["first"] = rec["stars"] == 0

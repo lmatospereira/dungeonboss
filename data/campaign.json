@@ -11,6 +11,11 @@
     "gold": 100
   },
   "surplusTokenGold": 25,
+  "recommended": {
+    "_doc": "Fração do poder recomendado (progression.json, 4 heróis no nível) que o mapa mostra: fases comuns pedem menos que as do chefe.",
+    "stage": 0.75,
+    "boss": 1.0
+  },
   "stars": {
     "firstThreeGems": 5
   },

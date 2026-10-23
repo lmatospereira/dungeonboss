@@ -92,8 +92,12 @@ O build também grava `www/config.js` com `window.MASMORRA_API = process.env.API
 | `?debug` | Expõe `window.__dbg` (`G`, `AB`, `SAVE()`, `kill`, `revive`, `fallenOf`) para testes automáticos |
 | `?shot=lineup` | Imagem com todos os heróis lado a lado |
 | `?shot=<chave>` | Retrato grande e transparente de um modelo (usado para gerar os ícones) |
-| `/v2/?grupo=N` | Prévia Godot: começa a vitrine no grupo N (0 heróis, 1 inimigos, 2 chefes) |
-| `/v2/?tema=<chave>` | Prévia Godot: fixa o cenário (`goblin`, `cripta`, `lodo`, `forja` ou `arena`) em todos os grupos |
+| `/v2/?vitrine` | Versão Godot: abre a vitrine dos modelos em vez do jogo |
+| `/v2/?grupo=N` | Vitrine Godot no grupo N (0 heróis, 1 inimigos, 2 chefes) |
+| `/v2/?tema=<chave>` | Vitrine Godot com o cenário fixo (`goblin`, `cripta`, `lodo`, `forja` ou `arena`) |
+| `/v2/?fase=1-2` | Versão Godot: vai direto para a batalha da fase |
+| `/v2/?turbo` | Versão Godot: batalha em 4x e no AUTO (testes) |
+| `/v2/?novo` | Versão Godot: apaga o progresso salvo no navegador e começa de novo |
 
 ### Versão Godot e arte
 
@@ -103,10 +107,19 @@ O build também grava `www/config.js` com `window.MASMORRA_API = process.env.API
   - `stylize.gd`: troca os materiais do `.glb` por toon + contorno; tinge materiais pelo prefixo do nome (usado nos temas do cenário).
   - `dungeon_room.gd`: monta a sala com o kit (piso em MultiMesh, paredes, arco gradeado, pilares, tochas, estandartes, objetos por tema, trono na sala do chefe), luzes (no máximo 6, por causa do renderizador Compatibility), névoa e poeira. Cores de cada tema em `THEMES`, objetos em `PROPS`.
   - `flame.gd`: chama de tocha e braseiro (cones aditivos, brilho, faíscas e luz tremulando).
-  - `showcase.gd`: a vitrine atual de `/v2/`.
+  - `showcase.gd`: a vitrine dos modelos (`/v2/?vitrine`).
+- **Jogo (`scenes/main.tscn`):**
+  - `scripts/app/main.gd`: raiz; guarda o perfil, troca as telas e lê os parâmetros da URL (fora do navegador, da linha de comando: `godot -- fase=1-1 turbo`).
+  - `scripts/app/save.gd`: salva o perfil em `user://perfil.json` (no navegador, IndexedDB). A sincronização com a conta vem depois.
+  - `scripts/core/campaign.gd` e `profile.gd`: campanha (`data/campaign.json`) e regras do perfil (moedas, fichas, liberar herói, loja, recompensas). Sem gráficos, cobertos pelos testes.
+  - `scripts/screens/`: `map_screen.gd` (capítulos e fases), `heroes_screen.gd` (equipe, ficha, treino, evolução, liberar e comprar ficha), `result_screen.gd`, `backdrop.gd` (sala 3D atrás dos menus) e `top_bar.gd` (moedas).
+  - `scripts/battle/`: `battle_screen.gd` chama `step()`/`act()` do núcleo e anima os eventos; `battle_hud.gd` é a interface (cartões dos heróis, poderes redondos com recarga, barras dos inimigos, barra do chefe, AUTO, 2x, pausa); `unit_view.gd` é o modelo de cada unidade (animações, anel da vez, marca do alvo, clique); `fx.gd` faz números, projéteis, impactos e brilhos.
+  - `scripts/ui/ui_kit.gd`: tema (fonte Lilita One, contorno no texto), painéis, botões, barras, retratos e ícones.
+  - A resolução base é 640×640 com `stretch=canvas_items/expand`, para a interface ter tamanho bom deitada e em pé.
+- **Retratos e ícones:** `art/blender/portraits.sh [chave ...]` renderiza o rosto de cada personagem em `game/assets/portraits/<chave>.png` (`art/blender/portrait.py`). `python3 tools/export_icons.py` copia os ícones SVG de `src/body.html` para `game/assets/icons/`.
 - **Personagens:** `blender -b -P art/blender/heroes/<chave>.py` (também `enemies/` e `bosses/`) gera `game/assets/characters/<pasta>/<chave>.glb` com esqueleto e as ações Idle, Attack, Cast, Hit, Death e Victory. A base fica em `art/blender/lib.py`.
 - **Kit da masmorra:** `blender -b -P art/blender/dungeon/kit.py [-- peça ...]` gera `game/assets/dungeon/<peça>.glb` (19 peças, uma malha cada, origem no chão). Materiais com prefixo `piso`, `parede`, `estandarte`, `brasa` e `cristal` são tingidos pelo tema no Godot; os demais (ferro, ouro, madeira, osso, barro) ficam fixos. Rode no máximo 3 Blenders em paralelo.
-- Toda a arte é autoral, gerada por esses scripts; não há assets de terceiros.
+- A arte é autoral, gerada por esses scripts. A única peça de terceiros é a fonte (ver `docs/ASSET_LICENSES.md`).
 
 ## Servidor
 

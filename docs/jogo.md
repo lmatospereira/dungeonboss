@@ -207,6 +207,13 @@ A versão Godot (`/v2/`) segue a linha do Dungeon Boss: o jogo começa com 3 her
 - **Derrota:** paga o ouro e a experiência das salas vencidas, sem fichas nem diamantes.
 - `tools/godot.sh campaign` simula a chance de vitória de cada fase no AUTO.
 
+**Telas da versão Godot:**
+- **Mapa:** capítulos com 3 fases cada, estrelas, cadeado nas fases fechadas e o retrato do herói cujas fichas a fase dá. O painel da fase mostra inimigos, poder da equipe contra o recomendado e as recompensas.
+- **Heróis / Equipe:** os 4 espaços da equipe, todos os heróis (os bloqueados aparecem escurecidos, com a barra de fichas), a ficha com poderes, treino, evolução, liberar herói e comprar ficha com diamantes. Vinda do mapa, tem o botão **Lutar!**.
+- **Batalha:** cartões dos heróis embaixo (retrato, vida, escudo e status; o da vez fica levantado e com borda dourada), botões redondos dos poderes do herói da vez (o número é a recarga), barra de vida sobre cada inimigo, barra grande do chefe, sala atual no topo (a caveira é a do chefe), ouro ganho, pausa, AUTO e 2x.
+  - **Alvo:** toque num inimigo para marcá-lo (anel vermelho); os poderes de alvo único vão nele. Cura e ressurreição pedem para tocar no aliado.
+- **Resultado:** estrelas, ouro, diamantes, cristais, fichas com a barra até liberar o herói, níveis ganhos e os botões Mapa, Repetir e Próxima.
+
 <!-- gerado:campanha -->
 | Fase | Masmorra | Nível | Salas | Primeira vitória | A cada vitória |
 |---|---|---|---|---|---|

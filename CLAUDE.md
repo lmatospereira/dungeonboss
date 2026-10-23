@@ -37,7 +37,7 @@ Versão de **navegador**, com servidor próprio na VPS do Leonardo. Android/Play
 ```bash
 npm install && npm run build && npx http-server www -p 8765   # offline, sem API
 ```
-Parâmetros: `?turbo` (8x + AUTO), `?sala=N`, `?debug` (`window.__dbg` com `G`, `AB`, `SAVE()`, `kill`, `revive`, `fallenOf`), `?shot=lineup`, `?shot=<chave>`. Na prévia Godot (`/v2/`): `?grupo=N` (0 heróis, 1 inimigos, 2 chefes) e `?tema=<chave>` (goblin, cripta, lodo, forja, arena).
+Parâmetros: `?turbo` (8x + AUTO), `?sala=N`, `?debug` (`window.__dbg` com `G`, `AB`, `SAVE()`, `kill`, `revive`, `fallenOf`), `?shot=lineup`, `?shot=<chave>`. Na versão Godot (`/v2/`): `?fase=1-2` (direto na batalha), `?turbo` (4x + AUTO), `?novo` (apaga o progresso salvo), `?vitrine` ou `?grupo=N` / `?tema=<chave>` (vitrine dos modelos). A campanha Godot (3 heróis iniciais, fichas, ouro e diamantes) fica em `data/campaign.json`.
 Testes automáticos: Playwright usando o Chrome do sistema (`executablePath: '/usr/bin/google-chrome'`, args `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader`). O render por software deixa as animações bem mais lentas: espere por estado (`waitForFunction`), não por tempo fixo. Confira o console nas duas orientações (1280×720 e 400×860). Para testar com API, use um túnel SSH até a porta interna do jogo na VPS.
 
 ## Deploy
