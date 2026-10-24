@@ -77,6 +77,17 @@ Sem um domínio próprio, um nome `<algo>.<ip-com-hifens>.sslip.io` resolve para
 
 Deixe `PROXY_NETWORK` vazio e `PUBLIC_BIND=0.0.0.0`. O `dbvps deploy` abre `PUBLIC_PORT` no firewalld do servidor. Na Oracle Cloud, também é preciso liberar a porta na Security List da VCN, pelo console.
 
+## Situação atual: servidor desmontado (23/10/2026)
+
+O jogo foi tirado do ar a pedido do Leonardo. Na VPS foram removidos os containers `db`, `api` e `web`, o volume `masmorra_pgdata`, a imagem `masmorra-api`, a pasta `~/masmorra` (com o `.env`) e o bloco do jogo no Caddyfile do devbox. O Caddyfile anterior ficou guardado ao lado do original, como `Caddyfile.bak-masmorra`. Os outros projetos não foram mexidos.
+
+Todo o código continua no git. O backup do banco (3 contas) ficou na máquina do Leonardo, em `~/.config/dungeonboss/backups/`, fora do repositório.
+
+Para remontar:
+1. `dbvps deploy`. Isso cria um `.env` novo, com segredos novos. Depois acrescente `PROXY_NETWORK` e `PUBLIC_BIND=127.0.0.1` ao `.env` e rode `dbvps deploy` de novo.
+2. Volte o bloco do jogo no Caddyfile, como no passo 2 do jeito 1 acima, e recarregue o Caddy.
+3. Para recuperar as contas, restaure o backup como descrito na rotina abaixo. Como o `JWT_SECRET` muda, os jogadores precisam entrar de novo.
+
 ## Rotina
 
 - **Publicar uma versão nova:**
