@@ -1,11 +1,11 @@
 # Masmorra do Rei Ogro: contexto para o Claude
 
-Responda em português do Brasil. O dono do projeto é o Leonardo (lmatospereira). Ele quer um jogo no estilo do Dungeon Boss / Dungeon Boss: Respawned (Netflix), mas com personagens, nomes e arte **originais**. Nunca copie personagens, nomes ou arte do jogo original.
+Responda em português do Brasil. O dono do projeto é o Lucas (lmatospereira). Ele quer um jogo no estilo do Dungeon Boss / Dungeon Boss: Respawned (Netflix), mas com personagens, nomes e arte **originais**. Nunca copie personagens, nomes ou arte do jogo original.
 
 Documentação completa: `docs/jogo.md` (regras e conteúdo), `docs/arquitetura.md` (técnica), `docs/api.md` (rotas) e `docs/operacao.md` (VPS). **Ao mudar regras, heróis, poderes, rotas ou deploy, atualize o documento correspondente no mesmo commit.**
 
 ## Foco atual (MVP)
-Versão de **navegador**, com servidor próprio na VPS do Leonardo. Android/Play Store fica para depois; o projeto Capacitor já existe em `android/` (falta CORS na API e `API_URL` no build do app).
+Versão de **navegador**, com servidor próprio na VPS do Lucas. Android/Play Store fica para depois; o projeto Capacitor já existe em `android/` (falta CORS na API e `API_URL` no build do app).
 
 ## Como o código está organizado
 - `data/*.json` é a **fonte única dos números** (heróis, inimigos, habilidades, regras, progressão). Balanceamento se muda aqui, nunca no código.
