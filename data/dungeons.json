@@ -1,0 +1,125 @@
+{
+  "_doc": "Masmorras: nível, chefe, salas (lista de inimigos), herói recrutado na 1ª vitória e posição no mapa (x,y paisagem; mx,my retrato, em %). targetWin = faixa de vitória esperada no nível da masmorra com evolução 1 (usada pelo simulador de balanceamento; padrão 70%–85%).",
+  "dungeons": [
+    {
+      "id": "d1",
+      "name": "Covil dos Goblins",
+      "theme": "goblin",
+      "lvl": 1,
+      "boss": "grakk",
+      "unlockHero": "rook",
+      "x": 13,
+      "y": 72,
+      "mx": 28,
+      "my": 83,
+      "rooms": [
+        [
+          "goblin",
+          "arqueiro",
+          "goblin"
+        ],
+        [
+          "goblin",
+          "arqueiro",
+          "xama"
+        ]
+      ],
+      "sub": [
+        "Três goblins guardam a entrada.",
+        "O covil fica mais barulhento.",
+        "Grakk defende o tesouro da tribo."
+      ],
+      "targetWin": [
+        0.85,
+        0.95
+      ]
+    },
+    {
+      "id": "d2",
+      "name": "Cripta Esquecida",
+      "theme": "cripta",
+      "lvl": 4,
+      "boss": "lich",
+      "unlockHero": "nyx",
+      "x": 38,
+      "y": 34,
+      "mx": 70,
+      "my": 64,
+      "rooms": [
+        [
+          "esqueleto",
+          "magoEsq",
+          "esqueleto"
+        ],
+        [
+          "esqueleto",
+          "magoEsq",
+          "magoEsq"
+        ]
+      ],
+      "sub": [
+        "Os mortos não descansam aqui.",
+        "Um frio estranho sobe do chão.",
+        "Morvhal desperta no seu sarcófago."
+      ]
+    },
+    {
+      "id": "d3",
+      "name": "Pântano do Lodo",
+      "theme": "lodo",
+      "lvl": 8,
+      "boss": "gorruk",
+      "x": 63,
+      "y": 68,
+      "mx": 30,
+      "my": 38,
+      "rooms": [
+        [
+          "xama",
+          "goblin",
+          "xama"
+        ],
+        [
+          "goblin",
+          "xama",
+          "arqueiro",
+          "goblin"
+        ]
+      ],
+      "sub": [
+        "O lodo cobre tudo.",
+        "Os seguidores de Gorruk atacam.",
+        "O Rei Ogro espera no trono."
+      ]
+    },
+    {
+      "id": "d4",
+      "name": "Forja Infernal",
+      "theme": "forja",
+      "lvl": 12,
+      "boss": "ignar",
+      "x": 87,
+      "y": 28,
+      "mx": 72,
+      "my": 18,
+      "rooms": [
+        [
+          "diabrete",
+          "bruto",
+          "diabrete"
+        ],
+        [
+          "bruto",
+          "diabrete",
+          "bruto",
+          "diabrete"
+        ]
+      ],
+      "sub": [
+        "O calor é insuportável.",
+        "A forja nunca apaga.",
+        "Ignar se levanta da lava."
+      ]
+    }
+  ]
+}

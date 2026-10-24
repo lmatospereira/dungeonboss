@@ -1,0 +1,277 @@
+{
+  "_doc": "Heróis jogáveis. hp/atk/spd/crit/dr no nível 1 e evolução 1. abilities = básico + 2 habilidades; ult = 4º poder (evolução 2); weapon = arma lendária (evolução 3, bônus somados aos atributos). view = só apresentação.",
+  "order": [
+    "brom",
+    "lyra",
+    "alva",
+    "vex",
+    "kai",
+    "mira",
+    "rook",
+    "nyx"
+  ],
+  "starters": [
+    "brom",
+    "lyra",
+    "alva",
+    "vex",
+    "kai",
+    "mira"
+  ],
+  "types": {
+    "tanque": {
+      "n": "Tanque",
+      "c": "#7cc7ff",
+      "d": "Aguenta pancada e protege a equipe."
+    },
+    "dano": {
+      "n": "Dano",
+      "c": "#ff7a6e",
+      "d": "Derruba inimigos rápido."
+    },
+    "suporte": {
+      "n": "Suporte",
+      "c": "#6fe38c",
+      "d": "Cura e protege os aliados."
+    }
+  },
+  "heroes": {
+    "brom": {
+      "name": "Brom",
+      "role": "Guardião",
+      "el": "natureza",
+      "hp": 1350,
+      "atk": 92,
+      "spd": 88,
+      "crit": 0.08,
+      "dr": 0.12,
+      "ult": "fortaleza",
+      "abilities": [
+        "escudo",
+        "provocar",
+        "terremoto"
+      ],
+      "view": {
+        "model": "brom",
+        "height": 2.2,
+        "radius": 0.55
+      },
+      "type": "tanque",
+      "bio": "Anão teimoso de escudo e machado que segura a linha de frente. Provoca os inimigos para tirar o foco dos aliados e atordoa o grupo inteiro com o Terremoto.",
+      "weapon": {
+        "name": "Machado Rachapedra",
+        "desc": "Machado de pedra rúnica forjado pelos anões da montanha.",
+        "hp": 0.12,
+        "atk": 0.12,
+        "dr": 0,
+        "color": "#9fe4a8"
+      }
+    },
+    "lyra": {
+      "name": "Lyra",
+      "role": "Piromante",
+      "el": "fogo",
+      "hp": 820,
+      "atk": 148,
+      "spd": 108,
+      "crit": 0.12,
+      "ult": "explosaoSolar",
+      "abilities": [
+        "faisca",
+        "bolafogo",
+        "meteoros"
+      ],
+      "view": {
+        "model": "lyra",
+        "height": 2.5,
+        "radius": 0.5
+      },
+      "type": "dano",
+      "bio": "Piromante impulsiva que transforma tudo em brasa. Tem o maior dano em área da equipe, mas aguenta pouco: deixe alguém na frente dela.",
+      "weapon": {
+        "name": "Cajado da Fênix",
+        "desc": "Uma pena de fênix arde para sempre na ponta do cajado.",
+        "atk": 0.22,
+        "crit": 0.05,
+        "color": "#ff7a2a"
+      }
+    },
+    "alva": {
+      "name": "Alva",
+      "role": "Clériga",
+      "el": "luz",
+      "hp": 960,
+      "atk": 104,
+      "spd": 100,
+      "crit": 0.08,
+      "ult": "ressurreicao",
+      "abilities": [
+        "luzsagrada",
+        "prece",
+        "bencao"
+      ],
+      "view": {
+        "model": "alva",
+        "height": 2.3,
+        "radius": 0.5
+      },
+      "type": "suporte",
+      "bio": "Clériga serena que mantém a equipe de pé. Cura um aliado de cada vez ou todos juntos, e ainda remove veneno, queimadura e atordoamento.",
+      "weapon": {
+        "name": "Maça da Aurora",
+        "desc": "Brilha como o primeiro raio de sol e fortalece as preces.",
+        "hp": 0.12,
+        "atk": 0.15,
+        "color": "#ffe27a"
+      }
+    },
+    "vex": {
+      "name": "Vex",
+      "role": "Ladino",
+      "el": "sombra",
+      "hp": 880,
+      "atk": 132,
+      "spd": 122,
+      "crit": 0.3,
+      "ult": "dancaSombras",
+      "abilities": [
+        "corte",
+        "veneno",
+        "execucao"
+      ],
+      "view": {
+        "model": "vex",
+        "height": 2.2,
+        "radius": 0.5
+      },
+      "type": "dano",
+      "bio": "Ladino veloz que costuma agir antes de todos. Envenena os alvos mais fortes e finaliza quem já está com pouca vida.",
+      "weapon": {
+        "name": "Adagas do Eclipse",
+        "desc": "Lâminas gêmeas que somem na sombra antes de cortar.",
+        "atk": 0.15,
+        "crit": 0.1,
+        "spd": 6,
+        "color": "#b47bff"
+      }
+    },
+    "kai": {
+      "name": "Kai",
+      "role": "Arqueiro",
+      "el": "agua",
+      "hp": 860,
+      "atk": 128,
+      "spd": 114,
+      "crit": 0.2,
+      "ult": "tiroAtordoante",
+      "abilities": [
+        "tiro",
+        "perfurante",
+        "chuvaFlechas"
+      ],
+      "view": {
+        "model": "kai",
+        "height": 2.2,
+        "radius": 0.5
+      },
+      "type": "dano",
+      "bio": "Caçador das marés com mira certeira. A Flecha Perfurante atravessa escudos e a Chuva de Flechas acerta todos os inimigos.",
+      "weapon": {
+        "name": "Arco das Marés",
+        "desc": "A corda vibra como onda e a flecha nunca erra o alvo.",
+        "atk": 0.2,
+        "crit": 0.08,
+        "color": "#45aaff"
+      }
+    },
+    "mira": {
+      "name": "Mira",
+      "role": "Sacerdotisa",
+      "el": "agua",
+      "hp": 940,
+      "atk": 104,
+      "spd": 106,
+      "crit": 0.08,
+      "ult": "mareAlta",
+      "abilities": [
+        "jatoAgua",
+        "ondaCura",
+        "bolha"
+      ],
+      "view": {
+        "model": "mira",
+        "height": 2.3,
+        "radius": 0.5
+      },
+      "type": "suporte",
+      "bio": "Sacerdotisa das marés que protege com bolhas de água. Dê escudo para todos logo antes do golpe forte do chefe.",
+      "weapon": {
+        "name": "Tridente Coral",
+        "desc": "Tridente do fundo do mar que guarda a força das correntes.",
+        "hp": 0.15,
+        "atk": 0.18,
+        "color": "#9fe4ff"
+      }
+    },
+    "rook": {
+      "name": "Rook",
+      "role": "Berserker",
+      "el": "fogo",
+      "hp": 1180,
+      "atk": 124,
+      "spd": 96,
+      "crit": 0.15,
+      "dr": 0.08,
+      "ult": "furiaSangue",
+      "abilities": [
+        "machadada",
+        "sede",
+        "redemoinho"
+      ],
+      "view": {
+        "model": "rook",
+        "height": 2.4,
+        "radius": 0.55
+      },
+      "type": "tanque",
+      "bio": "Berserker de dois machados que fica mais forte no meio da briga. Recupera vida com a Sede de Batalha e gira no meio dos inimigos deixando todos em chamas.",
+      "weapon": {
+        "name": "Machados Brasa Viva",
+        "desc": "Dois machados que esquentam a cada golpe.",
+        "hp": 0.1,
+        "atk": 0.2,
+        "color": "#ff5a2a"
+      }
+    },
+    "nyx": {
+      "name": "Nyx",
+      "role": "Necromante",
+      "el": "sombra",
+      "hp": 840,
+      "atk": 136,
+      "spd": 104,
+      "crit": 0.1,
+      "ult": "colheita",
+      "abilities": [
+        "toqueSombrio",
+        "drenar",
+        "maldicao"
+      ],
+      "view": {
+        "model": "nyx",
+        "height": 2.4,
+        "radius": 0.5
+      },
+      "type": "dano",
+      "bio": "Necromante que rouba a vida dos inimigos. Espalha veneno em todos com a Maldição e se cura com Drenar Vida.",
+      "weapon": {
+        "name": "Foice das Almas",
+        "desc": "Cada ceifada guarda um pouco da vida do inimigo.",
+        "hp": 0.08,
+        "atk": 0.2,
+        "crit": 0.05,
+        "color": "#5ef0a0"
+      }
+    }
+  }
+}

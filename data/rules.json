@@ -1,0 +1,34 @@
+{
+  "_doc": "Regras gerais de combate e o triângulo de elementos (beats = elemento que este vence).",
+  "combat": {
+    "elemAdv": 1.5,
+    "elemDis": 0.7,
+    "critMult": 1.6,
+    "dmgVariance": 0.08,
+    "roomHeal": 0.15,
+    "enrageAtk": 1.3,
+    "maxTurns": 400
+  },
+  "elements": {
+    "fogo": {
+      "name": "Fogo",
+      "beats": "natureza"
+    },
+    "natureza": {
+      "name": "Natureza",
+      "beats": "agua"
+    },
+    "agua": {
+      "name": "Água",
+      "beats": "fogo"
+    },
+    "luz": {
+      "name": "Luz",
+      "beats": "sombra"
+    },
+    "sombra": {
+      "name": "Sombra",
+      "beats": "luz"
+    }
+  }
+}
